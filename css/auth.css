@@ -72,3 +72,8 @@
 .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .auth-error { margin-top: 15px; padding: 12px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; color: #ef4444; font-size: 13px; text-align: center; display: none; }
 .auth-error:not(:empty) { display: block; }
+
+/* آیکون ورود = دقیقاً آیکون HOME با دو خط چرخان */
+.logo-big { width: 96px; height: 96px; font-size: 46px; margin: 0 auto 16px auto; }
+.logo-big::before { inset: 4px; }
+.logo-big::after { inset: -7px; border-width: 3px; }
