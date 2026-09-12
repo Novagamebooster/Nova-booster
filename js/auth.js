@@ -64,3 +64,5 @@ async function getBoostHistory(limit = 10) {
 
 function isLoggedIn() { return currentUser !== null; }
 function getCurrentUser() { return currentUser; }
+
+export { initSupabase, signUp, signIn, signOut, getProfile, updateProfile, saveBoostHistory, getBoostHistory, isLoggedIn, getCurrentUser };
