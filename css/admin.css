@@ -1,5 +1,5 @@
 
-.admin-container { min-height: 100vh; background: var(--bg); padding: 20px; }
+.admin-container { min-height: 100vh; background: transparent; padding: 20px; }
 .admin-header { text-align: center; margin-bottom: 25px; padding-top: 20px; position: relative; }
 .admin-header h1 { font-size: 26px; color: var(--text); margin: 10px 0 5px; font-family: 'Orbitron', sans-serif; background: linear-gradient(135deg, var(--cyan), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .admin-subtitle { color: var(--muted); font-size: 13px; }
