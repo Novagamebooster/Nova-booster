@@ -10,8 +10,10 @@
 <body data-theme="neon">
     <div class="auth-container">
         <div class="auth-header">
-            <div class="nova-logo-big">
-                <div class="nova-logo-inner">N</div>
+            <!-- آیکون واقعی اپ - همان دایره N صفحه HOME -->
+            <div class="home-icon-big">
+                <div class="home-icon-inner">N</div>
+                <div class="home-icon-glow"></div>
             </div>
             <div class="logo-text">NOVA</div>
             <div class="tagline">GAME BOOSTER</div>
@@ -21,7 +23,10 @@
             <button type="button" class="auth-tab" data-tab="register">ثبت‌نام</button>
         </div>
         <form id="loginForm" class="auth-form active">
-            <div class="form-group"><label>ایمیل</label><input type="email" id="loginEmail" required placeholder="your@email.com"></div>
+            <div class="form-group">
+                <label>جیمیل</label>
+                <input type="email" id="loginEmail" required placeholder="your@gmail.com">
+            </div>
             <div class="form-group">
                 <label>رمز عبور</label>
                 <div class="input-with-icon">
@@ -39,9 +44,14 @@
             <div id="loginError" class="auth-error"></div>
         </form>
         <form id="registerForm" class="auth-form">
-            <div class="form-group"><label>نام کاربری</label><input type="text" id="registerUsername" required minlength="3" placeholder="username"></div>
-            <div class="form-group"><label>شماره موبایل</label><input type="tel" id="registerMobile" placeholder="09123456789"></div>
-            <div class="form-group"><label>ایمیل</label><input type="email" id="registerEmail" required placeholder="your@email.com"></div>
+            <div class="form-group">
+                <label>نام کاربری</label>
+                <input type="text" id="registerUsername" required minlength="3" placeholder="username">
+            </div>
+            <div class="form-group">
+                <label>جیمیل</label>
+                <input type="email" id="registerEmail" required placeholder="your@gmail.com">
+            </div>
             <div class="form-group">
                 <label>رمز عبور</label>
                 <div class="input-with-icon">
@@ -74,7 +84,6 @@
             });
         });
 
-        // Toggle password visibility
         document.querySelectorAll('.toggle-pass').forEach(btn => {
             btn.addEventListener('click', () => {
                 const input = document.getElementById(btn.dataset.target);
@@ -103,7 +112,7 @@
                 await signIn(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
                 location.href = 'index.html';
             } catch (e2) { 
-                err.textContent = 'خطا: ' + (e2.message || 'ایمیل یا رمز اشتباه است');
+                err.textContent = 'خطا: ' + (e2.message || 'جیمیل یا رمز اشتباه است');
                 btn.disabled = false;
                 btn.textContent = 'ورود';
             }
@@ -120,8 +129,7 @@
                 await signUp(
                     document.getElementById('registerEmail').value,
                     document.getElementById('registerPassword').value,
-                    document.getElementById('registerUsername').value,
-                    document.getElementById('registerMobile').value
+                    document.getElementById('registerUsername').value
                 );
                 location.href = 'index.html';
             } catch (e2) { 

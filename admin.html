@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOVA - پنل مدیریت</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body data-theme="neon">
+    <div class="admin-container">
+        <div class="admin-header">
+            <a href="index.html" class="back-btn">← بازگشت</a>
+            <h1>🛡️ پنل مدیریت</h1>
+            <p class="admin-subtitle">مدیریت کاربران NOVA</p>
+        </div>
+        <div id="adminAccess" class="admin-access-denied" style="display:none;">
+            <div class="denied-icon">🚫</div>
+            <h2>دسترسی غیرمجاز</h2>
+            <p>فقط مدیر می‌تواند به این صفحه دسترسی داشته باشد.</p>
+            <a href="index.html" class="btn-back">بازگشت به اپ</a>
+        </div>
+        <div id="adminContent" style="display:none;">
+            <div class="admin-stats" id="statsBox"></div>
+            <div class="users-list" id="usersList"></div>
+        </div>
+    </div>
+    <script type="module">
+        import { initSupabase, getCurrentUser, isAdmin, getAllUsers, changeUserPlan, deleteUserProfile } from './js/auth.js';
+        
+        try {
+            await initSupabase();
+            const admin = await isAdmin();
+            
+            if (!admin) {
+                document.getElementById('adminAccess').style.display = 'block';
+            } else {
+                document.getElementById('adminContent').style.display = 'block';
+                await loadUsers();
+            }
+        } catch (e) {
+            document.getElementById('adminAccess').style.display = 'block';
+        }
+        
+        async function loadUsers() {
+            const users = await getAllUsers();
+            const list = document.getElementById('usersList');
+            const stats = document.getElementById('statsBox');
+            
+            const free = users.filter(u => u.plan === 'free').length;
+            const premium = users.filter(u => u.plan !== 'free').length;
+            
+            stats.innerHTML = `
+                <div class="stat">
+                    <div class="stat-num">${users.length}</div>
+                    <div class="stat-label">کل کاربران</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num">${free}</div>
+                    <div class="stat-label">رایگان</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-num">${premium}</div>
+                    <div class="stat-label">پرمیوم</div>
+                </div>
+            `;
+            
+            if (users.length === 0) {
+                list.innerHTML = '<p class="empty">هنوز کاربری ثبت‌نام نکرده.</p>';
+                return;
+            }
+            
+            list.innerHTML = users.map(u => `
+                <div class="user-card">
+                    <div class="user-main">
+                        <div class="user-avatar">${(u.username || '?')[0].toUpperCase()}</div>
+                        <div class="user-info">
+                            <div class="user-name">${u.username || '(بدون نام)'}</div>
+                            <div class="user-email">${u.email}</div>
+                            <div class="user-date">${new Date(u.created_at).toLocaleDateString('fa-IR')}</div>
+                        </div>
+                        <div class="user-plan ${u.plan === 'free' ? 'free' : 'premium'}">
+                            ${u.plan === 'free' ? 'رایگان' : 'پرمیوم'}
+                        </div>
+                    </div>
+                    <div class="user-actions">
+                        <button onclick="changePlan('${u.id}', '${u.plan === 'free' ? 'premium' : 'free'}')" class="action-btn change">
+                            تغییر پلن
+                        </button>
+                        <button onclick="deleteUser('${u.id}', '${(u.username || '').replace(/'/g, "\\'")}')" class="action-btn delete">
+                            حذف
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        window.changePlan = async function(userId, newPlan) {
+            try {
+                await changeUserPlan(userId, newPlan);
+                await loadUsers();
+                alert('پلن کاربر تغییر کرد');
+            } catch (e) {
+                alert('خطا: ' + e.message);
+            }
+        };
+        
+        window.deleteUser = async function(userId, name) {
+            if (!confirm('آیا از حذف کاربر "' + name + '" مطمئنی؟')) return;
+            try {
+                await deleteUserProfile(userId);
+                await loadUsers();
+                alert('کاربر حذف شد');
+            } catch (e) {
+                alert('خطا: ' + e.message);
+            }
+        };
+    </script>
+</body>
+</html>

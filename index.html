@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-title" content="NOVA">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=1789224093">
+    <link rel="stylesheet" href="css/style.css?v=1789226182">
 </head>
 <body data-theme="neon">
 
@@ -208,8 +208,7 @@
                 <label class="label">USERNAME</label>
                 <input id="username" class="input" placeholder="e.g. NovaPro">
 
-                <label class="label">PHONE</label>
-                <input id="mobile" class="input" placeholder="09xxxxxxxxx">
+                
 
                 <label class="label">EMAIL</label>
                 <input id="email" class="input" placeholder="example@gmail.com">
@@ -270,6 +269,31 @@
                     نوا — رادار هولوگرافیک، طراحی مینیمال، بدون صدا.
                 </p>
             </div>
+                <div class="settings-row" style="margin-top:20px;">
+                    <button onclick="novaLogout()" style="
+                        width:100%;
+                        padding:14px;
+                        background: linear-gradient(135deg, #ef4444, #dc2626);
+                        border: none;
+                        border-radius: 10px;
+                        color: white;
+                        font-size: 14px;
+                        font-weight: 700;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                        font-family: inherit;
+                    ">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                        خروج از حساب کاربری
+                    </button>
+                </div>
         </section>
 
     </main>
@@ -283,17 +307,53 @@
     <div id="toast"></div>
 
     <!-- Scripts -->
-    <script src="js/games.js?v=1789224093"></script>
-    <script src="js/app.js?v=1789224093"></script>
+    <script src="js/games.js?v=1789226182"></script>
+    <script src="js/app.js?v=1789226182"></script>
     
     <!-- Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js?v=1789224093')
+            navigator.serviceWorker.register('./sw.js?v=1789226182')
                 .then(reg => console.log('SW registered'))
                 .catch(err => console.log('SW registration failed'));
         }
     </script>
 
+
+<script type="module">
+import { initSupabase, getCurrentUser, isLoggedIn } from './js/auth.js';
+await initSupabase();
+
+const user = getCurrentUser();
+if (user && user.email === 'yazdanabdi1372@gmail.com') {
+    // اضافه کردن لینک admin در صفحه settings
+    const settingsPage = document.getElementById('settings');
+    if (settingsPage && !document.getElementById('adminLink')) {
+        const adminCard = document.createElement('div');
+        adminCard.className = 'card';
+        adminCard.style.marginTop = '15px';
+        adminCard.style.border = '1px solid rgba(234,179,8,0.3)';
+        adminCard.style.background = 'rgba(234,179,8,0.05)';
+        adminCard.innerHTML = `
+            <div class="section-title" style="margin-top:0;">
+                <h2>🛡️ پنل مدیریت</h2>
+                <span>ADMIN</span>
+            </div>
+            <a href="admin.html" id="adminLink" style="
+                display:block;
+                padding:14px;
+                background: linear-gradient(135deg, #eab308, #f59e0b);
+                border-radius: 10px;
+                color: white;
+                text-align:center;
+                text-decoration:none;
+                font-weight:700;
+                font-size:14px;
+            ">مدیریت کاربران</a>
+        `;
+        settingsPage.appendChild(adminCard);
+    }
+}
+</script>
 </body>
 </html>

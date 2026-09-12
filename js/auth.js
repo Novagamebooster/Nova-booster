@@ -16,7 +16,7 @@ async function loadSupabaseLib() {
             if (mod && mod.createClient) return mod.createClient;
         } catch (e) { lastErr = e; }
     }
-    throw new Error('عدم دسترسی به کتابخانه Supabase (اینترنت/VPN را بررسی کنید)');
+    throw new Error('عدم دسترسی به Supabase');
 }
 
 async function initSupabase() {
@@ -32,26 +32,20 @@ async function initSupabase() {
     return currentUser;
 }
 
-async function signUp(email, password, username, mobile) {
+async function signUp(email, password, username) {
     if (!supabase) await initSupabase();
     const { data, error } = await supabase.auth.signUp({ email, password });
-    
     if (error) {
-        const errMsg = error.message.toLowerCase();
-        // اگر ایمیل قبلاً ثبت شده، خودکار وارد کن
-        if (errMsg.includes('already registered') || errMsg.includes('already been registered')) {
-            const signInResult = await signIn(email, password);
-            // اگر ورود موفق بود، پروفایل رو آپدیت کن
-            if (signInResult) {
-                await updateProfile({ username, mobile });
-            }
-            return signInResult;
+        const msg = error.message.toLowerCase();
+        if (msg.includes('already registered') || msg.includes('already been registered')) {
+            return await signIn(email, password);
         }
         throw error;
     }
-    
     if (data.user) {
-        await supabase.from('profiles').insert({ id: data.user.id, username, mobile, email, plan: 'free' }).catch(e => console.warn('Profile insert error:', e));
+        await supabase.from('profiles').insert({
+            id: data.user.id, username, email, plan: 'free'
+        }).catch(e => console.warn('Profile insert:', e));
     }
     return data;
 }
@@ -65,8 +59,9 @@ async function signIn(email, password) {
 
 async function signOut() {
     if (!supabase) await initSupabase();
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    await supabase.auth.signOut();
+    currentUser = null;
+    localStorage.removeItem('nova_user_id');
 }
 
 async function getProfile() {
@@ -78,30 +73,36 @@ async function getProfile() {
 async function updateProfile(updates) {
     if (!currentUser) throw new Error('Not logged in');
     const { data, error } = await supabase.from('profiles').update(updates).eq('id', currentUser.id).select().single();
-    if (error) {
-        // اگر پروفایل وجود نداره، insert کن
-        const { data: existing } = await supabase.from('profiles').select('id').eq('id', currentUser.id).single();
-        if (!existing) {
-            const { data: inserted } = await supabase.from('profiles').insert({ id: currentUser.id, ...updates }).select().single();
-            return inserted;
-        }
-        throw error;
-    }
+    if (error) throw error;
     return data;
 }
 
-async function saveBoostHistory(gameId, serverHost, ping) {
-    if (!currentUser) return;
-    await supabase.from('boost_history').insert({ user_id: currentUser.id, game_id: gameId, server_host: serverHost, ping }).catch(e => console.warn(e));
+// Admin functions
+async function isAdmin() {
+    if (!currentUser) return false;
+    return currentUser.email === 'yazdanabdi1372@gmail.com';
 }
 
-async function getBoostHistory(limit = 10) {
-    if (!currentUser) return [];
-    const { data } = await supabase.from('boost_history').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(limit);
+async function getAllUsers() {
+    if (!(await isAdmin())) return [];
+    const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
     return data || [];
+}
+
+async function changeUserPlan(userId, plan) {
+    if (!(await isAdmin())) throw new Error('Not admin');
+    const { data, error } = await supabase.from('profiles').update({ plan }).eq('id', userId).select().single();
+    if (error) throw error;
+    return data;
+}
+
+async function deleteUserProfile(userId) {
+    if (!(await isAdmin())) throw new Error('Not admin');
+    const { error } = await supabase.from('profiles').delete().eq('id', userId);
+    if (error) throw error;
 }
 
 function isLoggedIn() { return currentUser !== null; }
 function getCurrentUser() { return currentUser; }
 
-export { initSupabase, signUp, signIn, signOut, getProfile, updateProfile, saveBoostHistory, getBoostHistory, isLoggedIn, getCurrentUser };
+export { initSupabase, signUp, signIn, signOut, getProfile, updateProfile, isAdmin, getAllUsers, changeUserPlan, deleteUserProfile, isLoggedIn, getCurrentUser };
