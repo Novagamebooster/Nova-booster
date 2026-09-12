@@ -35,9 +35,23 @@ async function initSupabase() {
 async function signUp(email, password, username, mobile) {
     if (!supabase) await initSupabase();
     const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
+    
+    if (error) {
+        const errMsg = error.message.toLowerCase();
+        // اگر ایمیل قبلاً ثبت شده، خودکار وارد کن
+        if (errMsg.includes('already registered') || errMsg.includes('already been registered')) {
+            const signInResult = await signIn(email, password);
+            // اگر ورود موفق بود، پروفایل رو آپدیت کن
+            if (signInResult) {
+                await updateProfile({ username, mobile });
+            }
+            return signInResult;
+        }
+        throw error;
+    }
+    
     if (data.user) {
-        await supabase.from('profiles').insert({ id: data.user.id, username, mobile, email, plan: 'free' });
+        await supabase.from('profiles').insert({ id: data.user.id, username, mobile, email, plan: 'free' }).catch(e => console.warn('Profile insert error:', e));
     }
     return data;
 }
@@ -64,13 +78,21 @@ async function getProfile() {
 async function updateProfile(updates) {
     if (!currentUser) throw new Error('Not logged in');
     const { data, error } = await supabase.from('profiles').update(updates).eq('id', currentUser.id).select().single();
-    if (error) throw error;
+    if (error) {
+        // اگر پروفایل وجود نداره، insert کن
+        const { data: existing } = await supabase.from('profiles').select('id').eq('id', currentUser.id).single();
+        if (!existing) {
+            const { data: inserted } = await supabase.from('profiles').insert({ id: currentUser.id, ...updates }).select().single();
+            return inserted;
+        }
+        throw error;
+    }
     return data;
 }
 
 async function saveBoostHistory(gameId, serverHost, ping) {
     if (!currentUser) return;
-    await supabase.from('boost_history').insert({ user_id: currentUser.id, game_id: gameId, server_host: serverHost, ping });
+    await supabase.from('boost_history').insert({ user_id: currentUser.id, game_id: gameId, server_host: serverHost, ping }).catch(e => console.warn(e));
 }
 
 async function getBoostHistory(limit = 10) {

@@ -10,8 +10,10 @@
 <body data-theme="neon">
     <div class="auth-container">
         <div class="auth-header">
-            <div class="auth-icon">N</div>
-            <div class="logo">NOVA</div>
+            <div class="nova-logo-big">
+                <div class="nova-logo-inner">N</div>
+            </div>
+            <div class="logo-text">NOVA</div>
             <div class="tagline">GAME BOOSTER</div>
         </div>
         <div class="auth-tabs">
@@ -19,16 +21,40 @@
             <button type="button" class="auth-tab" data-tab="register">ثبت‌نام</button>
         </div>
         <form id="loginForm" class="auth-form active">
-            <div class="form-group"><label>ایمیل</label><input type="email" id="loginEmail" required></div>
-            <div class="form-group"><label>رمز عبور</label><input type="password" id="loginPassword" required minlength="6"></div>
+            <div class="form-group"><label>ایمیل</label><input type="email" id="loginEmail" required placeholder="your@email.com"></div>
+            <div class="form-group">
+                <label>رمز عبور</label>
+                <div class="input-with-icon">
+                    <input type="password" id="loginPassword" required minlength="6" placeholder="••••••••">
+                    <button type="button" class="toggle-pass" data-target="loginPassword">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path class="eye-open" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle class="eye-open" cx="12" cy="12" r="3"/>
+                            <line class="eye-closed" x1="1" y1="1" x2="23" y2="23" style="display:none"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
             <button type="submit" class="auth-btn">ورود</button>
             <div id="loginError" class="auth-error"></div>
         </form>
         <form id="registerForm" class="auth-form">
-            <div class="form-group"><label>نام کاربری</label><input type="text" id="registerUsername" required minlength="3"></div>
+            <div class="form-group"><label>نام کاربری</label><input type="text" id="registerUsername" required minlength="3" placeholder="username"></div>
             <div class="form-group"><label>شماره موبایل</label><input type="tel" id="registerMobile" placeholder="09123456789"></div>
-            <div class="form-group"><label>ایمیل</label><input type="email" id="registerEmail" required></div>
-            <div class="form-group"><label>رمز عبور</label><input type="password" id="registerPassword" required minlength="6"></div>
+            <div class="form-group"><label>ایمیل</label><input type="email" id="registerEmail" required placeholder="your@email.com"></div>
+            <div class="form-group">
+                <label>رمز عبور</label>
+                <div class="input-with-icon">
+                    <input type="password" id="registerPassword" required minlength="6" placeholder="حداقل ۶ کاراکتر">
+                    <button type="button" class="toggle-pass" data-target="registerPassword">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path class="eye-open" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle class="eye-open" cx="12" cy="12" r="3"/>
+                            <line class="eye-closed" x1="1" y1="1" x2="23" y2="23" style="display:none"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
             <button type="submit" class="auth-btn">ثبت‌نام</button>
             <div id="registerError" class="auth-error"></div>
         </form>
@@ -36,7 +62,7 @@
     <script type="module">
         import { initSupabase, signIn, signUp } from './js/auth.js';
         try { await initSupabase(); } catch (e) {
-            document.querySelectorAll('.auth-error').forEach(el => el.textContent = 'خطا: ' + e.message);
+            document.querySelectorAll('.auth-error').forEach(el => el.textContent = 'خطا در اتصال: ' + e.message);
         }
 
         document.querySelectorAll('.auth-tab').forEach(t => {
@@ -48,20 +74,48 @@
             });
         });
 
+        // Toggle password visibility
+        document.querySelectorAll('.toggle-pass').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const input = document.getElementById(btn.dataset.target);
+                const openPath = btn.querySelector('.eye-open');
+                const closedLine = btn.querySelector('.eye-closed');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    openPath.style.opacity = '0.4';
+                    closedLine.style.display = 'block';
+                } else {
+                    input.type = 'password';
+                    openPath.style.opacity = '1';
+                    closedLine.style.display = 'none';
+                }
+            });
+        });
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const err = document.getElementById('loginError');
-            err.textContent = 'در حال ورود...';
+            const btn = e.target.querySelector('.auth-btn');
+            err.textContent = '';
+            btn.disabled = true;
+            btn.textContent = 'در حال ورود...';
             try {
                 await signIn(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
                 location.href = 'index.html';
-            } catch (e2) { err.textContent = 'خطا: ' + (e2.message || 'ورود ناموفق'); }
+            } catch (e2) { 
+                err.textContent = 'خطا: ' + (e2.message || 'ایمیل یا رمز اشتباه است');
+                btn.disabled = false;
+                btn.textContent = 'ورود';
+            }
         });
 
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const err = document.getElementById('registerError');
-            err.textContent = 'در حال ثبت‌نام...';
+            const btn = e.target.querySelector('.auth-btn');
+            err.textContent = '';
+            btn.disabled = true;
+            btn.textContent = 'در حال ثبت‌نام...';
             try {
                 await signUp(
                     document.getElementById('registerEmail').value,
@@ -70,7 +124,11 @@
                     document.getElementById('registerMobile').value
                 );
                 location.href = 'index.html';
-            } catch (e2) { err.textContent = 'خطا: ' + (e2.message || 'ثبت‌نام ناموفق'); }
+            } catch (e2) { 
+                err.textContent = 'خطا: ' + (e2.message || 'ثبت‌نام ناموفق');
+                btn.disabled = false;
+                btn.textContent = 'ثبت‌نام';
+            }
         });
     </script>
 </body>
