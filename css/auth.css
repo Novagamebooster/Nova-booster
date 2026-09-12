@@ -49,12 +49,12 @@
     50% { opacity: 1; }
 }
 
-.logo-text { font-size: 32px; font-weight: 900; background: linear-gradient(135deg, var(--cyan), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Orbitron', sans-serif; letter-spacing: 6px; }
+.logo-text { font-size: 32px; font-weight: 900; background: linear-gradient(135deg, var(--cyan), var(--purple), var(--teal), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Orbitron', sans-serif; letter-spacing: 6px; }
 .tagline { color: var(--muted); font-size: 12px; letter-spacing: 4px; margin-top: 4px; }
 
 .auth-tabs { display: flex; gap: 10px; margin-bottom: 25px; background: var(--card); padding: 5px; border-radius: 12px; border: 1px solid var(--line); width: 100%; max-width: 400px; }
 .auth-tab { flex: 1; padding: 12px 24px; background: transparent; border: none; color: var(--muted); font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; font-family: inherit; }
-.auth-tab.active { background: linear-gradient(135deg, var(--cyan), var(--purple)); color: white; }
+.auth-tab.active { background: linear-gradient(135deg, var(--cyan), var(--purple), var(--teal), var(--blue)); color: white; }
 .auth-form { display: none; width: 100%; max-width: 400px; }
 .auth-form.active { display: block; }
 .form-group { margin-bottom: 18px; }
@@ -68,7 +68,7 @@
 .toggle-pass:hover { color: var(--cyan); }
 .toggle-pass svg { width: 22px; height: 22px; }
 
-.auth-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--cyan), var(--purple)); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; font-family: inherit; }
+.auth-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--cyan), var(--purple), var(--teal), var(--blue)); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; font-family: inherit; }
 .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .auth-error { margin-top: 15px; padding: 12px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; color: #ef4444; font-size: 13px; text-align: center; display: none; }
 .auth-error:not(:empty) { display: block; }
