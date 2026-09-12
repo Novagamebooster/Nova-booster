@@ -1,31 +1,33 @@
-const CACHE_NAME = 'nova-booster-v5';
-const ASSETS_TO_CACHE = [
-    './',
-    './index.html',
-    './css/style.css',
-    './js/app.js',
-    './js/games.js',
-    './manifest.json'
-];
+const CACHE_NAME = 'nova-booster-v6';
 
 self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(ASSETS_TO_CACHE))
-            .then(() => self.skipWaiting())
-    );
+    self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(names =>
-            Promise.all(names.filter(n => n !== CACHE_NAME).map(n => caches.delete(n)))
+            Promise.all(names.map(n => caches.delete(n)))
         ).then(() => self.clients.claim())
     );
 });
 
 self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET') return;
+
+    if (event.request.url.startsWith(self.location.origin)) {
+        event.respondWith(
+            fetch(event.request).then(response => {
+                if (response.ok) {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                }
+                return response;
+            }).catch(() => caches.match(event.request).then(c => c || caches.match('./index.html')))
+        );
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request).then(cached => {
             if (cached) return cached;
@@ -35,10 +37,6 @@ self.addEventListener('fetch', event => {
                     caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
                 }
                 return response;
-            }).catch(() => {
-                if (event.request.destination === 'document') {
-                    return caches.match('./index.html');
-                }
             });
         })
     );
