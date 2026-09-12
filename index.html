@@ -13,9 +13,32 @@
     <meta name="apple-mobile-web-app-title" content="NOVA">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=1789229518">
+    <link rel="stylesheet" href="css/style.css?v=1789230271">
 </head>
 <body data-theme="neon">
+<div id="novaSplash">
+  <div class="logo splash-logo"><span>N</span></div>
+  <div class="splash-title">NOVA</div>
+  <div class="splash-sub">GAME BOOSTER</div>
+</div>
+<style>
+#novaSplash{position:fixed;inset:0;z-index:99999;background:#030509;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .45s ease;}
+#novaSplash.hide{opacity:0;pointer-events:none;}
+.splash-logo{width:110px;height:110px;font-size:52px;margin-bottom:18px;}
+.splash-logo::before{inset:4px;}
+.splash-logo::after{inset:-8px;border-width:3px;}
+.splash-title{font-family:'Orbitron','Segoe UI',sans-serif;font-size:34px;font-weight:900;letter-spacing:6px;text-transform:uppercase;background:linear-gradient(135deg,var(--cyan),var(--purple),var(--teal),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.splash-sub{color:#8b93a7;font-size:12px;letter-spacing:4px;margin-top:6px;text-transform:uppercase;}
+</style>
+<script>
+(function(){
+  var s=document.getElementById('novaSplash');
+  function hide(){ if(s){ s.classList.add('hide'); setTimeout(function(){ s.remove(); },500); } }
+  window.addEventListener('load', function(){ setTimeout(hide, 900); });
+  setTimeout(hide, 3500);
+})();
+</script>
+
 
 <script>
 (async function() {
@@ -294,7 +317,27 @@
                         خروج از حساب کاربری
                     </button>
                 </div>
-        </section>
+        
+                <div class="settings-row" style="border-bottom:none;">
+                    <button id="logoutBtn" onclick="novaLogout()" style="width:100%;padding:14px;background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:10px;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🚪 خروج از حساب کاربری</button>
+                </div>
+
+                <div class="settings-row" style="border-bottom:none;">
+                    <button id="clearAppDataBtn" style="width:100%;padding:14px;background:rgba(139,147,167,.12);border:1px solid rgba(139,147,167,.3);border-radius:10px;color:#8b93a7;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🧹 پاک کردن حافظه اپ</button>
+                </div>
+                <script>
+                document.addEventListener('DOMContentLoaded', function(){
+                  var b=document.getElementById('clearAppDataBtn');
+                  if(b) b.onclick=function(){
+                    if(!confirm('حافظه اپ پاک شود؟ از حساب خارج می‌شوی.')) return;
+                    localStorage.clear();
+                    if('caches' in window){ caches.keys().then(function(ks){ ks.forEach(function(k){ caches.delete(k); }); }); }
+                    if(navigator.serviceWorker){ navigator.serviceWorker.getRegistrations().then(function(rs){ rs.forEach(function(r){ r.unregister(); }); }); }
+                    location.href='auth.html';
+                  };
+                });
+                </script>
+</section>
 
     </main>
 
@@ -307,13 +350,13 @@
     <div id="toast"></div>
 
     <!-- Scripts -->
-    <script src="js/games.js?v=1789229518"></script>
-    <script src="js/app.js?v=1789229518"></script>
+    <script src="js/games.js?v=1789230271"></script>
+    <script src="js/app.js?v=1789230271"></script>
     
     <!-- Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js?v=1789229518')
+            navigator.serviceWorker.register('./sw.js?v=1789230271')
                 .then(reg => console.log('SW registered'))
                 .catch(err => console.log('SW registration failed'));
         }
@@ -354,6 +397,24 @@ if (user && user.email === 'yazdanabdi1372@gmail.com') {
         settingsPage.appendChild(adminCard);
     }
 }
+</script>
+
+<script type="module">
+import { initSupabase, updateProfile } from './js/auth.js';
+await initSupabase().catch(()=>{});
+document.addEventListener('click', async (e)=>{
+  const btn = e.target.closest('#saveProfile');
+  if(!btn) return;
+  const u = document.getElementById('username');
+  const em = document.getElementById('email');
+  const t = document.getElementById('toast');
+  try{
+    await updateProfile({ username: u ? u.value : '', email: em ? em.value : '' });
+    if(t){ t.textContent='✅ اطلاعات ذخیره شد'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+  }catch(err){
+    if(t){ t.textContent='خطا در ذخیره: '+err.message; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+  }
+});
 </script>
 </body>
 </html>

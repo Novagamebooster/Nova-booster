@@ -4,10 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>NOVA - ورود</title>
-    <link rel="stylesheet" href="css/style.css?v=1789229518">
-    <link rel="stylesheet" href="css/auth.css?v=1789229518">
+    <link rel="stylesheet" href="css/style.css?v=1789230271">
+    <link rel="stylesheet" href="css/auth.css?v=1789230271">
 </head>
 <body data-theme="neon">
+<div id="novaSplash">
+  <div class="logo splash-logo"><span>N</span></div>
+  <div class="splash-title">NOVA</div>
+  <div class="splash-sub">GAME BOOSTER</div>
+</div>
+<style>
+#novaSplash{position:fixed;inset:0;z-index:99999;background:#030509;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .45s ease;}
+#novaSplash.hide{opacity:0;pointer-events:none;}
+.splash-logo{width:110px;height:110px;font-size:52px;margin-bottom:18px;}
+.splash-logo::before{inset:4px;}
+.splash-logo::after{inset:-8px;border-width:3px;}
+.splash-title{font-family:'Orbitron','Segoe UI',sans-serif;font-size:34px;font-weight:900;letter-spacing:6px;text-transform:uppercase;background:linear-gradient(135deg,var(--cyan),var(--purple),var(--teal),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.splash-sub{color:#8b93a7;font-size:12px;letter-spacing:4px;margin-top:6px;text-transform:uppercase;}
+</style>
+<script>
+(function(){
+  var s=document.getElementById('novaSplash');
+  function hide(){ if(s){ s.classList.add('hide'); setTimeout(function(){ s.remove(); },500); } }
+  window.addEventListener('load', function(){ setTimeout(hide, 900); });
+  setTimeout(hide, 3500);
+})();
+</script>
+
     <div class="bgAnimated"></div>
     <div class="lines"></div>
     <div class="auth-container">
