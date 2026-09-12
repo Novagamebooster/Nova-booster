@@ -1,51 +1,52 @@
-import json, urllib.request, urllib.parse, os
+import re, urllib.request, urllib.parse, os
 
 GAMES = {
-    "mlbb": ("com.mobile.legends", "sg"),
-    "codm": ("com.activision.callofduty.shooter", "us"),
-    "df":   ("com.proxima.dfm", "us"),
-    "pubg": ("com.tencent.ig", "us"),
-    "ff":   ("com.dts.freefireth", "us"),
-    "fc":   ("com.ea.ios.fifamobile", "us"),
-    "ef":   ("jp.konami.pesactionmobile", "us"),
-    "hok":  ("com.levelinfinite.sgameGlobal", "us"),
+    "mlbb": "com.mobile.legends.usa",
+    "codm": "com.activision.callofduty.shooter",
+    "df":   "com.proxima.dfm",
+    "pubg": "com.tencent.ig",
+    "ff":   "com.dts.freefireth",
+    "fc":   "com.ea.gp.fifamobile",
+    "ef":   "jp.konami.pesactionmobile",
+    "hok":  "com.levelinfinite.sgameGlobal",
 }
 
-def get_json(url):
-    try:
-        with urllib.request.urlopen(url, timeout=20) as r:
-            return json.load(r)
-    except Exception:
-        proxy = "https://api.allorigins.win/raw?url=" + urllib.parse.quote(url, safe="")
-        with urllib.request.urlopen(proxy, timeout=30) as r:
-            return json.load(r)
+UA = {"User-Agent": "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36"}
 
-def download(url, path):
-    prox = "https://wsrv.nl/?url=" + urllib.parse.quote(url, safe="") + "&w=512&h=512&fit=cover"
-    for u in (prox, url):
+def fetch(url):
+    req = urllib.request.Request(url, headers=UA)
+    return urllib.request.urlopen(req, timeout=30).read()
+
+def play_icon(pkg):
+    html = fetch("https://play.google.com/store/apps/details?id=" + pkg + "&hl=en_US").decode("utf-8", "ignore")
+    m = re.search(r'property="og:image"\s+content="([^"]+)"', html)
+    if not m:
+        m = re.search(r'(https://play-lh\.googleusercontent\.com/[^"\s]+)', html)
+    return m.group(1) if m else None
+
+def save(url, path):
+    tries = [
+        url,
+        "https://wsrv.nl/?url=" + urllib.parse.quote(url, safe="") + "&w=512&h=512&fit=cover"
+    ]
+    for u in tries:
         try:
-            req = urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0"})
-            data = urllib.request.urlopen(req, timeout=30).read()
+            data = fetch(u)
             if len(data) > 5000:
                 with open(path, "wb") as f:
                     f.write(data)
                 return True
         except Exception:
-            continue
+            pass
     return False
 
 os.makedirs("icons/games", exist_ok=True)
-print("=== شروع آپدیت آیکون‌ها ===")
-for gid, (bid, country) in GAMES.items():
-    api = "https://itunes.apple.com/lookup?bundleId=" + bid + "&country=" + country
+print("=== دانلود آیکون‌ها مستقیم از Google Play ===")
+for gid, pkg in GAMES.items():
     try:
-        data = get_json(api)
-        if data.get("resultCount", 0) >= 1:
-            icon = data["results"][0]["artworkUrl512"]
-            ok = download(icon, "icons/games/" + gid + ".png")
-            print(("OK   " if ok else "FAIL ") + gid)
-        else:
-            print("FAIL " + gid + " (not found)")
+        icon = play_icon(pkg)
+        ok = save(icon, "icons/games/" + gid + ".png") if icon else False
+        print(("OK   " if ok else "FAIL ") + gid)
     except Exception as e:
         print("FAIL " + gid + " : " + str(e))
 print("=== پایان ===")
