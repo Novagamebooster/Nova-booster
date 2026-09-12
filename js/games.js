@@ -1,15 +1,10 @@
-// ============================================
-// NOVA Game Catalog
-// ساختار قابل توسعه
-// ============================================
-
 const NOVA_GAMES = [
     {
         id: "mlbb",
         name: "Mobile Legends: Bang Bang",
         shortName: "MLBB",
         genre: "MOBA",
-        searchQuery: "Mobile Legends Bang Bang game logo",
+        icon: "icons/games/mlbb.png",
         colors: { primary: "#ffb300", secondary: "#ff6f00" },
         pingOffset: 5
     },
@@ -18,7 +13,7 @@ const NOVA_GAMES = [
         name: "Call of Duty: Mobile",
         shortName: "CODM",
         genre: "FPS",
-        searchQuery: "Call of Duty Mobile game logo",
+        icon: "icons/games/codm.png",
         colors: { primary: "#22d3ee", secondary: "#2563eb" },
         pingOffset: 10
     },
@@ -27,7 +22,7 @@ const NOVA_GAMES = [
         name: "Delta Force",
         shortName: "DF",
         genre: "Tactical FPS",
-        searchQuery: "Delta Force game logo 2024",
+        icon: "icons/games/df.png",
         colors: { primary: "#94a3b8", secondary: "#475569" },
         pingOffset: 18
     },
@@ -36,7 +31,7 @@ const NOVA_GAMES = [
         name: "PUBG Mobile",
         shortName: "PUBG",
         genre: "Battle Royale",
-        searchQuery: "PUBG Mobile game logo",
+        icon: "icons/games/pubg.png",
         colors: { primary: "#facc15", secondary: "#f59e0b" },
         pingOffset: 8
     },
@@ -45,7 +40,7 @@ const NOVA_GAMES = [
         name: "Free Fire",
         shortName: "FF",
         genre: "Battle Royale",
-        searchQuery: "Garena Free Fire game logo",
+        icon: "icons/games/ff.png",
         colors: { primary: "#fb7185", secondary: "#ef4444" },
         pingOffset: 6
     },
@@ -54,7 +49,7 @@ const NOVA_GAMES = [
         name: "EA SPORTS FC Mobile",
         shortName: "FC",
         genre: "Sports",
-        searchQuery: "EA Sports FC Mobile game logo",
+        icon: "icons/games/fc.png",
         colors: { primary: "#34d399", secondary: "#059669" },
         pingOffset: 12
     },
@@ -63,7 +58,7 @@ const NOVA_GAMES = [
         name: "eFootball",
         shortName: "eF",
         genre: "Sports",
-        searchQuery: "eFootball Konami game logo",
+        icon: "icons/games/ef.png",
         colors: { primary: "#60a5fa", secondary: "#2563eb" },
         pingOffset: 14
     },
@@ -72,7 +67,7 @@ const NOVA_GAMES = [
         name: "Honor of Kings",
         shortName: "HOK",
         genre: "MOBA",
-        searchQuery: "Honor of Kings game logo",
+        icon: "icons/games/hok.png",
         colors: { primary: "#c084fc", secondary: "#7c3aed" },
         pingOffset: 7
     }
