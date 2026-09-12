@@ -1,8 +1,8 @@
-[[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "com.novagamebooster.app",
-        "sha256_cert_fingerprints": ["C1:0C:93:2D:E8:B7:DD:9C:7A:B6:2B:E3:87:54:82:5B:B4:5B:DB:D4:FA:85:C0:E4:03:58:D5:1B:D3:C2:C4:25"]
-      }
-    }]
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.novagamebooster.app",
+        "sha256_cert_fingerprints": ["C1:0C:93:2D:E8:B7:DD:9C:7A:B6:2B:E3:87:54:82:5B:B4:5B:DB:D4:FA:85:C0:E4:03:58:D5:1B:D3:C2:C4:25"]
+      }
+    }]
