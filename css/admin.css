@@ -1,28 +1,28 @@
 
-.admin-container { min-height: 100vh; background: var(--bg-dark); padding: 20px; }
+.admin-container { min-height: 100vh; background: var(--bg); padding: 20px; }
 .admin-header { text-align: center; margin-bottom: 25px; padding-top: 20px; position: relative; }
-.admin-header h1 { font-size: 26px; color: var(--text-primary); margin: 10px 0 5px; font-family: 'Orbitron', sans-serif; background: linear-gradient(135deg, var(--cyan), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.admin-subtitle { color: var(--text-secondary); font-size: 13px; }
-.back-btn { position: absolute; top: 20px; right: 20px; padding: 8px 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); text-decoration: none; font-size: 13px; }
+.admin-header h1 { font-size: 26px; color: var(--text); margin: 10px 0 5px; font-family: 'Orbitron', sans-serif; background: linear-gradient(135deg, var(--cyan), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.admin-subtitle { color: var(--muted); font-size: 13px; }
+.back-btn { position: absolute; top: 20px; right: 20px; padding: 8px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; color: var(--text); text-decoration: none; font-size: 13px; }
 
 .admin-access-denied { text-align: center; padding: 80px 20px; }
 .denied-icon { font-size: 72px; margin-bottom: 20px; }
-.admin-access-denied h2 { color: var(--text-primary); font-size: 24px; margin-bottom: 10px; }
-.admin-access-denied p { color: var(--text-secondary); margin-bottom: 30px; }
+.admin-access-denied h2 { color: var(--text); font-size: 24px; margin-bottom: 10px; }
+.admin-access-denied p { color: var(--muted); margin-bottom: 30px; }
 .btn-back { display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, var(--cyan), var(--purple)); color: white; text-decoration: none; border-radius: 10px; font-weight: 700; }
 
 .admin-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 25px; }
-.stat { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; text-align: center; }
 .stat-num { font-size: 28px; font-weight: 900; color: var(--cyan); font-family: 'Orbitron', sans-serif; }
-.stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+.stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
-.user-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+.user-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
 .user-main { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .user-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--purple)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 20px; flex-shrink: 0; }
 .user-info { flex: 1; min-width: 0; }
-.user-name { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
-.user-email { font-size: 12px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.user-date { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.user-name { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.user-email { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .user-plan { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; }
 .user-plan.free { background: rgba(34,211,238,0.15); color: var(--cyan); }
 .user-plan.premium { background: rgba(234,179,8,0.15); color: #eab308; }
@@ -31,4 +31,4 @@
 .action-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
 .action-btn.change { background: rgba(34,211,238,0.15); color: var(--cyan); border: 1px solid rgba(34,211,238,0.3); }
 .action-btn.delete { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
-.empty { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); }

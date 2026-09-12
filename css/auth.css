@@ -1,5 +1,5 @@
 
-.auth-container { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 40px 20px 20px; background: var(--bg-dark); overflow-y: auto; }
+.auth-container { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 40px 20px 20px; background: var(--bg); overflow-y: auto; }
 .auth-header { text-align: center; margin-bottom: 25px; display: flex; flex-direction: column; align-items: center; }
 
 /* آیکون واقعی اپ - دقیقاً همان استایل آیکون HOME */
@@ -50,21 +50,21 @@
 }
 
 .logo-text { font-size: 32px; font-weight: 900; background: linear-gradient(135deg, var(--cyan), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Orbitron', sans-serif; letter-spacing: 6px; }
-.tagline { color: var(--text-secondary); font-size: 12px; letter-spacing: 4px; margin-top: 4px; }
+.tagline { color: var(--muted); font-size: 12px; letter-spacing: 4px; margin-top: 4px; }
 
-.auth-tabs { display: flex; gap: 10px; margin-bottom: 25px; background: var(--card-bg); padding: 5px; border-radius: 12px; border: 1px solid var(--border); width: 100%; max-width: 400px; }
-.auth-tab { flex: 1; padding: 12px 24px; background: transparent; border: none; color: var(--text-secondary); font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; font-family: inherit; }
+.auth-tabs { display: flex; gap: 10px; margin-bottom: 25px; background: var(--card); padding: 5px; border-radius: 12px; border: 1px solid var(--line); width: 100%; max-width: 400px; }
+.auth-tab { flex: 1; padding: 12px 24px; background: transparent; border: none; color: var(--muted); font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; font-family: inherit; }
 .auth-tab.active { background: linear-gradient(135deg, var(--cyan), var(--purple)); color: white; }
 .auth-form { display: none; width: 100%; max-width: 400px; }
 .auth-form.active { display: block; }
 .form-group { margin-bottom: 18px; }
-.form-group label { display: block; color: var(--text-primary); font-size: 13px; margin-bottom: 8px; font-weight: 500; }
-.form-group input { width: 100%; padding: 14px 16px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text-primary); font-size: 15px; box-sizing: border-box; }
+.form-group label { display: block; color: var(--text); font-size: 13px; margin-bottom: 8px; font-weight: 500; }
+.form-group input { width: 100%; padding: 14px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; color: var(--text); font-size: 15px; box-sizing: border-box; }
 .form-group input:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(34,211,238,0.1); }
 
 .input-with-icon { position: relative; }
 .input-with-icon input { padding-right: 48px; }
-.toggle-pass { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: transparent; border: none; padding: 8px; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; }
+.toggle-pass { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: transparent; border: none; padding: 8px; cursor: pointer; color: var(--muted); display: flex; align-items: center; justify-content: center; }
 .toggle-pass:hover { color: var(--cyan); }
 .toggle-pass svg { width: 22px; height: 22px; }
 
