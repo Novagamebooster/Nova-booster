@@ -261,13 +261,17 @@ function countUpPing(el, target) {
 
 async function launchGame(game) {
     if (!game || !game.pkg) { toast('بازی انتخاب نشده!'); return; }
+    const pkgs = String(game.pkg).split(',').map(s => s.trim());
     const storeUrl = 'https://play.google.com/store/search?q=' + encodeURIComponent(game.name);
     if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BoostCore && Capacitor.Plugins.BoostCore.launchGame) {
-        try {
-            const res = await Capacitor.Plugins.BoostCore.launchGame({ pkg: game.pkg });
-            if (res && res.launched) { toast('🎮 بازی باز شد!'); return; }
-        } catch (e) {}
-        window.location.href = storeUrl;
+        for (const p of pkgs) {
+            try {
+                const res = await Capacitor.Plugins.BoostCore.launchGame({ pkg: p });
+                if (res && res.launched) { toast('🎮 بازی باز شد!'); return; }
+            } catch (e) {}
+        }
+        toast('❌ بازی پیدا نشد: ' + pkgs[0]);
+        setTimeout(() => { window.location.href = storeUrl; }, 1200);
         return;
     }
     let left = false;
@@ -277,7 +281,7 @@ async function launchGame(game) {
     document.addEventListener('visibilitychange', function onHide() {
         if (document.hidden) { left = true; clearTimeout(timer); document.removeEventListener('visibilitychange', onHide); }
     });
-    window.location.href = 'intent://#Intent;package=' + game.pkg + ';end';
+    window.location.href = 'intent://#Intent;package=' + pkgs[0] + ';end';
 }
 
 function stopBoost() {
