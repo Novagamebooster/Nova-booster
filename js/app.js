@@ -188,7 +188,9 @@ async function pingServer(server) {
     );
     const ok = dnsTests.filter(d => d.ping < 999);
     const bestDns = ok.length ? ok.reduce((x, y) => x.ping < y.ping ? x : y) : { dns: '-', ping: 999 };
-    const ping = await realPing(server.host, true);
+    const raw = await realPing(server.host, true);
+    // زمان کامل HTTPS ≈ ۴ برابر RTT واقعی → تبدیل به پینگ تخمینی
+    const ping = raw >= 999 ? 999 : Math.max(8, Math.round(raw / 4));
     return { ping: ping, bestDns: bestDns.dns };
 }
 
