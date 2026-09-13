@@ -163,6 +163,27 @@ jobs:
           }
           EOF
 
+      - name: Allow package visibility (Android 11+)
+        run: |
+          cd android
+          python3 - << 'PY'
+          p = 'app/src/main/AndroidManifest.xml'
+          s = open(p).read()
+          add = """    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+              <queries>
+                  <intent>
+                      <action android:name="android.intent.action.MAIN" />
+                      <category android:name="android.intent.category.LAUNCHER" />
+                  </intent>
+              </queries>
+          """
+          if 'QUERY_ALL_PACKAGES' not in s:
+              s = s.replace('</manifest>', add + '</manifest>')
+              open(p, 'w').write(s)
+          print('=== manifest tail ===')
+          print(open(p).read()[-500:])
+          PY
+
       - name: Build APK
         run: |
           cd android
