@@ -19,6 +19,18 @@ async function notifyAdminTelegram(msg) {
     } catch (e) {}
 }
 
+function wireCopyCard() {
+    const cb = document.getElementById('copyCardBtn');
+    if (!cb) return;
+    cb.onclick = () => {
+        const num = (document.getElementById('cardNumber').textContent || '').replace(/[^0-9]/g, '');
+        if (navigator.clipboard) navigator.clipboard.writeText(num);
+        cb.textContent = '✅ کپی شد!';
+        setTimeout(() => { cb.textContent = '📋 کپی شماره کارت'; }, 2000);
+        toast('✅ شماره کارت کپی شد');
+    };
+}
+
 function openBuyModal() {
     const activePlan = document.querySelector('.plan.active');
     if (!activePlan) { toast('ابتدا یک پلن را انتخاب کنید'); return; }
@@ -32,7 +44,7 @@ function openBuyModal() {
     document.getElementById('paymentStatus').style.display = 'none';
     document.getElementById('traceInput').value = '';
     const btn = document.getElementById('submitPaymentBtn');
-    btn.disabled = false; btn.textContent = 'ثبت پرداخت'; btn.style.display = 'block';
+    btn.disabled = false; btn.textContent = '✅ ثبت کد پیگیری و ارسال درخواست'; btn.style.display = 'block'; wireCopyCard();
     btn.onclick = async () => {
         const trace = document.getElementById('traceInput').value.trim();
         if (!trace || trace.length < 6) { toast('کد پیگیری معتبر وارد کنید'); return; }
@@ -47,9 +59,9 @@ function openBuyModal() {
             await notifyAdminTelegram('💳 پرداخت جدید!\n👤 ' + (user.email || 'user') + '\n📦 پلن: ' + months + ' ماهه\n💰 ' + amount.toLocaleString() + ' تومان\n🔑 کد: ' + trace);
             const st = document.getElementById('paymentStatus');
             st.style.display = 'block'; st.style.background = 'rgba(52,211,153,.1)'; st.style.border = '1px solid #34d399'; st.style.color = '#34d399';
-            st.innerHTML = '✅ پرداخت ثبت شد! ادمین بلافاصله مطلع شد';
-            btn.style.display = 'none'; toast('✅ پرداخت ثبت شد');
-        } catch (e) { toast('خطا: ' + e.message); btn.disabled = false; btn.textContent = 'ثبت پرداخت'; }
+            st.innerHTML = '<b>✅ کد پیگیری ثبت شد!</b><br><span style="font-size:12px;color:#94a3b8;">ادمین مطلع شد و پس از بررسی واریز، اشتراک فعال می‌شود</span>';
+            btn.style.display = 'none'; toast('✅ کد پیگیری ثبت شد! منتظر تأیید ادمین باشید');
+        } catch (e) { toast('خطا: ' + e.message); btn.disabled = false; btn.textContent = '✅ ثبت کد پیگیری و ارسال درخواست'; }
     };
 }
 
