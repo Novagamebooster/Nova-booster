@@ -102,7 +102,20 @@ async function deleteUserProfile(userId) {
     if (error) throw error;
 }
 
+async function saveProfileData(username, email) {
+    if (!currentUser) throw new Error('Not logged in');
+    const { data: existing } = await supabase.from('profiles').select('id').eq('id', currentUser.id).maybeSingle();
+    if (existing) {
+        const { data, error } = await supabase.from('profiles').update({ username, email }).eq('id', currentUser.id).select().single();
+        if (error) throw error;
+        return data;
+    }
+    const { data, error } = await supabase.from('profiles').insert({ id: currentUser.id, username, email, plan: 'free' }).select().single();
+    if (error) throw error;
+    return data;
+}
+
 function isLoggedIn() { return currentUser !== null; }
 function getCurrentUser() { return currentUser; }
 
-export { initSupabase, signUp, signIn, signOut, getProfile, updateProfile, isAdmin, getAllUsers, changeUserPlan, deleteUserProfile, isLoggedIn, getCurrentUser };
+export { initSupabase, signUp, signIn, signOut, getProfile, updateProfile, isAdmin, getAllUsers, changeUserPlan, deleteUserProfile, isLoggedIn, getCurrentUser, saveProfileData };

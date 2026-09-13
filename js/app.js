@@ -33,7 +33,7 @@ function loadGameIcon(game, imgElement) {
         imgElement.style.display = 'block';
     };
     
-    imgElement.src = game.icon + '?v=' + Date.now();
+    imgElement.src = game.icon;
 }
 
 function renderGames() {
@@ -43,7 +43,7 @@ function renderGames() {
     const games = state.showAllGames ? getAllGames() : getFeaturedGames(4);
 
     grid.innerHTML = games.map(game => `
-        <div class="game-card ${state.selectedGame === game.id ? "selected" : ""}" onclick="selectGame('${game.id}')">
+        <div class="game-card ${state.selectedGame === game.id ? "selected" : ""}" data-game-id="${game.id}" onclick="selectGame('${game.id}')">
             <div class="game-icon" style="background:linear-gradient(135deg, ${game.colors.primary}, ${game.colors.secondary});">
                 <img data-game-id="${game.id}" alt="${game.shortName}" style="display:none;">
             </div>
@@ -64,7 +64,9 @@ function renderGames() {
 function selectGame(id) {
     state.selectedGame = id;
     localStorage.setItem("nova_selected_game", id);
-    renderGames();
+    document.querySelectorAll('#gamesGrid .game-card').forEach(card => {
+        card.classList.toggle('selected', card.getAttribute('data-game-id') === id);
+    });
     updateSelectedGameName();
     toast("Game selected");
     refreshServers();
@@ -277,10 +279,7 @@ function setTheme(theme, silent) {
 }
 
 function loadProfile() {
-    const data = JSON.parse(localStorage.getItem("nova_profile") || "{}");
-    if (data.username) document.getElementById("username").value = data.username;
-    if (data.mobile) document.getElementById("mobile").value = data.mobile;
-    if (data.email) document.getElementById("email").value = data.email;
+    // اطلاعات پروفایل از Supabase توسط اسکریپت index.html پر می‌شود
 }
 
 function initApp() {
@@ -344,15 +343,7 @@ function initApp() {
         }
     };
 
-    document.getElementById("saveProfile").onclick = () => {
-        const data = {
-            username: document.getElementById("username").value,
-            mobile: document.getElementById("mobile").value,
-            email: document.getElementById("email").value
-        };
-        localStorage.setItem("nova_profile", JSON.stringify(data));
-        toast("پروفایل ذخیره شد");
-    };
+    // ذخیره واقعی پروفایل توسط اسکریپت ماژول در index.html انجام می‌شود
 
     document.querySelectorAll(".plan").forEach(plan => {
         plan.onclick = () => {

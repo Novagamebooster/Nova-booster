@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-title" content="NOVA">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=1789230271">
+    <link rel="stylesheet" href="css/style.css?v=1789292838">
 </head>
 <body data-theme="neon">
 <div id="novaSplash">
@@ -319,10 +319,6 @@
                 </div>
         
                 <div class="settings-row" style="border-bottom:none;">
-                    <button id="logoutBtn" onclick="novaLogout()" style="width:100%;padding:14px;background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:10px;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🚪 خروج از حساب کاربری</button>
-                </div>
-
-                <div class="settings-row" style="border-bottom:none;">
                     <button id="clearAppDataBtn" style="width:100%;padding:14px;background:rgba(139,147,167,.12);border:1px solid rgba(139,147,167,.3);border-radius:10px;color:#8b93a7;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🧹 پاک کردن حافظه اپ</button>
                 </div>
                 <script>
@@ -350,13 +346,13 @@
     <div id="toast"></div>
 
     <!-- Scripts -->
-    <script src="js/games.js?v=1789230271"></script>
-    <script src="js/app.js?v=1789230271"></script>
+    <script src="js/games.js?v=1789292838"></script>
+    <script src="js/app.js?v=1789292838"></script>
     
     <!-- Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js?v=1789230271')
+            navigator.serviceWorker.register('./sw.js?v=1789292838')
                 .then(reg => console.log('SW registered'))
                 .catch(err => console.log('SW registration failed'));
         }
@@ -400,7 +396,7 @@ if (user && user.email === 'yazdanabdi1372@gmail.com') {
 </script>
 
 <script type="module">
-import { initSupabase, updateProfile } from './js/auth.js';
+import { initSupabase, saveProfileData } from './js/auth.js';
 await initSupabase().catch(()=>{});
 document.addEventListener('click', async (e)=>{
   const btn = e.target.closest('#saveProfile');
@@ -409,7 +405,7 @@ document.addEventListener('click', async (e)=>{
   const em = document.getElementById('email');
   const t = document.getElementById('toast');
   try{
-    await updateProfile({ username: u ? u.value : '', email: em ? em.value : '' });
+    await saveProfileData((u ? u.value : '').trim(), (em ? em.value : '').trim());
     if(t){ t.textContent='✅ اطلاعات ذخیره شد'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
   }catch(err){
     if(t){ t.textContent='خطا در ذخیره: '+err.message; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
