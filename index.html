@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-title" content="NOVA">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=1789322765">
+    <link rel="stylesheet" href="css/style.css?v=1789323761">
 </head>
 <body data-theme="neon">
 <div id="novaSplash">
@@ -282,6 +282,27 @@
                     <b>support@nova.local</b>
                 </div>
 
+
+                <div class="settings-row" id="appModeRow">
+                    <span>حالت اپ</span>
+                    <b id="appModeValue">...</b>
+                </div>
+                <script>
+                document.addEventListener('DOMContentLoaded', function(){
+                  var el = document.getElementById('appModeValue');
+                  if (!el) return;
+                  if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BoostCore) {
+                    el.innerHTML = '📱 APK واقعی (پلاگین فعال ✅)';
+                    el.style.color = '#34d399';
+                  } else if (window.Capacitor) {
+                    el.innerHTML = '📱 APK (پلاگین غیرفعال ❌)';
+                    el.style.color = '#f87171';
+                  } else {
+                    el.innerHTML = '🌐 نسخه وب';
+                    el.style.color = '#60a5fa';
+                  }
+                });
+                </script>
                 <div class="settings-row">
                     <span>نسخه</span>
                     <b>4.0.0</b>
@@ -378,13 +399,13 @@
     <div id="toast"></div>
 
     <!-- Scripts -->
-    <script src="js/games.js?v=1789322765"></script>
-    <script src="js/app.js?v=1789322765"></script>
+    <script src="js/games.js?v=1789323761"></script>
+    <script src="js/app.js?v=1789323761"></script>
     
     <!-- Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js?v=1789322765')
+            navigator.serviceWorker.register('./sw.js?v=1789323761')
                 .then(reg => console.log('SW registered'))
                 .catch(err => console.log('SW registration failed'));
         }
