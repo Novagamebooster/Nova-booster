@@ -155,18 +155,20 @@ function renderServers() {
 
 // DNS سرورهای رایگان برای تست پینگ واقعی
 const DNS_SERVERS = [
+    { name: "Radar Game", host: "78.157.42.100", region: "IR-GAME" },
+    { name: "403 DNS", host: "178.22.122.100", region: "IR" },
+    { name: "Shecan", host: "10.202.10.10", region: "IR" },
+    { name: "Shatel", host: "217.218.127.104", region: "IR" },
+    { name: "AsiaTech", host: "85.15.1.1", region: "IR" },
     { name: "Cloudflare", host: "1.1.1.1", region: "US" },
-    { name: "Google", host: "8.8.8.8", region: "US" },
-    { name: "Quad9", host: "9.9.9.9", region: "CH" },
-    { name: "Turkey DNS", host: "185.22.136.20", region: "TR" },
-    { name: "UAE DNS", host: "195.229.241.222", region: "AE" }
+    { name: "Google", host: "8.8.8.8", region: "US" }
 ];
 
 // پینگ واقعی با fetch و timeout
 async function realPing(host, timeout = 2000) {
     const start = performance.now();
     try {
-        await fetch(`https://${host}`, { 
+        await fetch(`http://${host}`, { 
             mode: 'no-cors',
             cache: 'no-store'
         }).catch(() => {});
