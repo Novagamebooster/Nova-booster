@@ -1055,3 +1055,45 @@ body[data-theme="white"] .bottom-nav {
     color: var(--text);
     background: rgba(0,200,255,.08);
 }
+
+/* ===== NOVA PRO STYLING ===== */
+@keyframes novaRise { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+.card, .plan, .settings-row { animation: novaRise .45s ease both; }
+.card:nth-of-type(2) { animation-delay:.06s; }
+.card:nth-of-type(3) { animation-delay:.12s; }
+.plan:nth-child(2) { animation-delay:.05s; }
+.plan:nth-child(3) { animation-delay:.1s; }
+.plan:nth-child(4) { animation-delay:.15s; }
+
+.card {
+  background: rgba(255,255,255,.045) !important;
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(255,255,255,.09) !important;
+  box-shadow: 0 10px 34px rgba(0,0,0,.38);
+}
+.plan {
+  background: rgba(255,255,255,.04) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,.08) !important;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.plan:active { transform: scale(.97); }
+.plan.active {
+  border-color: rgba(34,211,238,.65) !important;
+  box-shadow: 0 0 22px rgba(34,211,238,.28);
+}
+
+@keyframes neonPulse {
+  0%,100% { box-shadow: 0 0 16px rgba(34,211,238,.22), 0 0 44px rgba(168,85,247,.14); border-color: rgba(34,211,238,.45) !important; }
+  50% { box-shadow: 0 0 30px rgba(168,85,247,.32), 0 0 64px rgba(45,212,191,.18); border-color: rgba(168,85,247,.55) !important; }
+}
+#home .card:first-of-type { animation: novaRise .45s ease both, neonPulse 3.2s ease-in-out infinite; }
+
+.btn-full, #buyBtn, #boostBtn { transition: transform .15s ease, filter .15s ease; }
+.btn-full:active, #buyBtn:active, #boostBtn:active { transform: scale(.97); filter: brightness(1.15); }
+
+::-webkit-scrollbar { width: 0; height: 0; }
+
+body, button, input, textarea, select { font-family: 'Vazirmatn', 'Vazir', 'Segoe UI', Tahoma, sans-serif !important; }
