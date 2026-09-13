@@ -2,7 +2,7 @@ const NOVA_GAMES = [
     {
         id: "mlbb", pkg: "com.mobile.legends,com.mobile.legends.huawei,com.moonton.mobilehero",
         name: "Mobile Legends: Bang Bang",
-        shortName: "MLBB",
+        shortName: "MLBB", kw: "mlbb,mobile legends,legend",
         genre: "MOBA",
         icon: "icons/games/mlbb.png",
         colors: { primary: "#ffb300", secondary: "#ff6f00" },
@@ -11,7 +11,7 @@ const NOVA_GAMES = [
     {
         id: "codm", pkg: "com.activision.callofduty.shooter,com.tencent.tmgp.codm",
         name: "Call of Duty: Mobile",
-        shortName: "CODM",
+        shortName: "CODM", kw: "call of duty,codm",
         genre: "FPS",
         icon: "icons/games/codm.png",
         colors: { primary: "#22d3ee", secondary: "#2563eb" },
@@ -20,7 +20,7 @@ const NOVA_GAMES = [
     {
         id: "df", pkg: "com.levelinfinite.dfmobile,com.tencent.tmgp.dfmobile",
         name: "Delta Force",
-        shortName: "DF",
+        shortName: "DF", kw: "delta force",
         genre: "Tactical FPS",
         icon: "icons/games/df.png",
         colors: { primary: "#94a3b8", secondary: "#475569" },
@@ -29,7 +29,7 @@ const NOVA_GAMES = [
     {
         id: "pubg", pkg: "com.pubg.imobile,com.tencent.ig",
         name: "PUBG Mobile",
-        shortName: "PUBG",
+        shortName: "PUBG", kw: "pubg",
         genre: "Battle Royale",
         icon: "icons/games/pubg.png",
         colors: { primary: "#facc15", secondary: "#f59e0b" },
@@ -38,7 +38,7 @@ const NOVA_GAMES = [
     {
         id: "ff", pkg: "com.dts.freefireth,com.dts.freefiremax",
         name: "Free Fire",
-        shortName: "FF",
+        shortName: "FF", kw: "free fire",
         genre: "Battle Royale",
         icon: "icons/games/ff.png",
         colors: { primary: "#fb7185", secondary: "#ef4444" },
@@ -47,7 +47,7 @@ const NOVA_GAMES = [
     {
         id: "fc", pkg: "com.ea.gp.fifamobile",
         name: "EA SPORTS FC Mobile",
-        shortName: "FC",
+        shortName: "FC", kw: "fc mobile,ea sports",
         genre: "Sports",
         icon: "icons/games/fc.png",
         colors: { primary: "#34d399", secondary: "#059669" },
@@ -56,7 +56,7 @@ const NOVA_GAMES = [
     {
         id: "ef", pkg: "jp.konami.pesam,jp.konami.prosoccerclub",
         name: "eFootball",
-        shortName: "eF",
+        shortName: "eF", kw: "efootball",
         genre: "Sports",
         icon: "icons/games/ef.png",
         colors: { primary: "#60a5fa", secondary: "#2563eb" },
@@ -65,7 +65,7 @@ const NOVA_GAMES = [
     {
         id: "hok", pkg: "com.levelinfinite.hokglobal,com.tencent.tmgp.hok,com.proximabeta.hok",
         name: "Honor of Kings",
-        shortName: "HOK",
+        shortName: "HOK", kw: "honor of kings,hok",
         genre: "MOBA",
         icon: "icons/games/hok.png",
         colors: { primary: "#c084fc", secondary: "#7c3aed" },

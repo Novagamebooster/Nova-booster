@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-title" content="NOVA">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=1789317443">
+    <link rel="stylesheet" href="css/style.css?v=1789322765">
 </head>
 <body data-theme="neon">
 <div id="novaSplash">
@@ -334,6 +334,37 @@
                   };
                 });
                 </script>
+
+                <div class="settings-row" style="border-bottom:none;margin-top:15px;">
+                    <button id="debugGamesBtn" style="width:100%;padding:14px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:10px;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🔍 نمایش همه اپ‌های نصب‌شده (دیباگ)</button>
+                </div>
+                <div id="debugGamesList" style="display:none;margin-top:10px;padding:15px;background:rgba(0,0,0,.5);border-radius:10px;max-height:400px;overflow-y:auto;font-family:monospace;font-size:12px;color:#fff;"></div>
+                <script>
+                document.addEventListener('DOMContentLoaded', function(){
+                  var b=document.getElementById('debugGamesBtn');
+                  var list=document.getElementById('debugGamesList');
+                  if(b) b.onclick=async function(){
+                    list.style.display='block';
+                    list.innerHTML='⏳ در حال گرفتن لیست...';
+                    if(!window.Capacitor || !Capacitor.Plugins || !Capacitor.Plugins.BoostCore) {
+                      list.innerHTML='❌ فقط در APK کار می‌کند';
+                      return;
+                    }
+                    try {
+                      var res = await Capacitor.Plugins.BoostCore.listInstalledGames();
+                      var games = res.games || [];
+                      var html = '<b>✅ ' + games.length + ' اپ نصب‌شده:</b><br><br>';
+                      games.forEach(function(g){
+                        html += '<div style="margin-bottom:6px;padding:6px;background:rgba(255,255,255,.1);border-radius:6px;">';
+                        html += '<b style="color:#34d399;">' + g.name + '</b><br>';
+                        html += '<span style="color:#60a5fa;font-size:11px;">' + g.pkg + '</span></div>';
+                      });
+                      list.innerHTML = html;
+                    } catch(e) { list.innerHTML = '❌ خطا: ' + e.message; }
+                  };
+                });
+                </script>
+
 </section>
 
     </main>
@@ -347,13 +378,13 @@
     <div id="toast"></div>
 
     <!-- Scripts -->
-    <script src="js/games.js?v=1789317443"></script>
-    <script src="js/app.js?v=1789317443"></script>
+    <script src="js/games.js?v=1789322765"></script>
+    <script src="js/app.js?v=1789322765"></script>
     
     <!-- Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js?v=1789317443')
+            navigator.serviceWorker.register('./sw.js?v=1789322765')
                 .then(reg => console.log('SW registered'))
                 .catch(err => console.log('SW registration failed'));
         }

@@ -268,7 +268,7 @@ async function launchGame(game) {
         try {
             const res = await Capacitor.Plugins.BoostCore.listInstalledGames();
             const installed = (res.games || []).map(g => ({ pkg: g.pkg, name: g.name }));
-            const keywords = [game.shortName.toLowerCase(), game.id, game.name.toLowerCase().split(' ')[0]];
+            const keywords = String(game.kw || game.name).split(',').map(s => s.trim());
             const match = installed.find(g => keywords.some(k => g.pkg.toLowerCase().includes(k) || g.name.toLowerCase().includes(k)));
             if (match) {
                 try {
@@ -278,9 +278,9 @@ async function launchGame(game) {
             }
             // fallback: تلاش همه پکیج‌های پیش‌فرض
             try {
-                const lr = await Capacitor.Plugins.BoostCore.launchGame({ pkg: String(game.pkg) });
+                const lr = await Capacitor.Plugins.BoostCore.launchGame({ pkg: String(game.pkg), keywords: String(game.kw || game.name) });
                 if (lr && lr.launched) { toast('🎮 بازی باز شد!'); return; }
-                toast('❌ بازی پیدا نشد: ' + (match ? match.pkg : String(game.pkg).split(',')[0]));
+                toast('❌ پیدا نشد! Settings → دکمه دیباگ');
                 setTimeout(() => { window.location.href = storeUrl; }, 1500);
             } catch (e) {
                 setTimeout(() => { window.location.href = storeUrl; }, 500);

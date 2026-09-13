@@ -116,6 +116,7 @@ jobs:
           mkdir -p app/src/main/java/com/novagamebooster/app
           cat << 'EOF' > app/src/main/java/com/novagamebooster/app/BoostCorePlugin.java
           package com.novagamebooster.app;
+          import android.content.ComponentName;
           import android.content.Intent;
           import android.content.pm.ResolveInfo;
           import android.net.VpnService;
@@ -141,9 +142,9 @@ jobs:
               @PluginMethod
               public void launchGame(PluginCall call) {
                   String pkgList = call.getString("pkg", "");
-                  String[] pkgs = pkgList.split(",");
+                  String keywords = call.getString("keywords", "");
                   JSObject ret = new JSObject();
-                  for (String p : pkgs) {
+                  for (String p : pkgList.split(",")) {
                       p = p.trim();
                       if (p.isEmpty()) continue;
                       Intent launch = getContext().getPackageManager().getLaunchIntentForPackage(p);
@@ -156,8 +157,33 @@ jobs:
                           return;
                       }
                   }
+                  try {
+                      Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+                      mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                      List<ResolveInfo> ris = getContext().getPackageManager().queryIntentActivities(mainIntent, 0);
+                      String[] kws = keywords.toLowerCase().split(",");
+                      for (String kw : kws) {
+                          kw = kw.trim();
+                          if (kw.length() < 3) continue;
+                          for (ResolveInfo ri : ris) {
+                              String pkg = ri.activityInfo.packageName.toLowerCase();
+                              String name = ri.loadLabel(getContext().getPackageManager()).toString().toLowerCase();
+                              if (pkg.contains(kw) || name.contains(kw)) {
+                                  Intent i = new Intent(Intent.ACTION_MAIN);
+                                  i.addCategory(Intent.CATEGORY_LAUNCHER);
+                                  i.setComponent(new ComponentName(ri.activityInfo.packageName, ri.activityInfo.name));
+                                  i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                  getActivity().startActivity(i);
+                                  ret.put("launched", true);
+                                  ret.put("pkg", ri.activityInfo.packageName);
+                                  call.resolve(ret);
+                                  return;
+                              }
+                          }
+                      }
+                  } catch (Exception e) {
+                  }
                   ret.put("launched", false);
-                  ret.put("tried", pkgList);
                   call.resolve(ret);
               }
 
@@ -170,21 +196,10 @@ jobs:
                       mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
                       List<ResolveInfo> ris = getContext().getPackageManager().queryIntentActivities(mainIntent, 0);
                       for (ResolveInfo ri : ris) {
-                          String pkg = ri.activityInfo.packageName;
-                          String name = ri.loadLabel(getContext().getPackageManager()).toString();
-                          String low = (pkg + " " + name).toLowerCase();
-                          if (low.contains("game") || low.contains("mobile") || low.contains("tencent") ||
-                              low.contains("supercell") || low.contains("moonton") || low.contains("garena") ||
-                              low.contains("levelinfinite") || low.contains("activision") || low.contains("konami") ||
-                              low.contains("pubg") || low.contains("freefire") || low.contains("honor") ||
-                              low.contains("legend") || low.contains("dota") || low.contains("fifa") ||
-                              low.contains("efootball") || low.contains("soccer") || low.contains("cod") ||
-                              low.contains("delta") || low.contains("proxima")) {
-                              JSObject obj = new JSObject();
-                              obj.put("pkg", pkg);
-                              obj.put("name", name);
-                              list.put(obj);
-                          }
+                          JSObject obj = new JSObject();
+                          obj.put("pkg", ri.activityInfo.packageName);
+                          obj.put("name", ri.loadLabel(getContext().getPackageManager()).toString());
+                          list.put(obj);
                       }
                   } catch (Exception e) {
                       ret.put("error", e.getMessage());
@@ -228,6 +243,7 @@ jobs:
           print('=== manifest tail ===')
           print(open(p).read()[-500:])
           PY
+          grep -q QUERY_ALL_PACKAGES app/src/main/AndroidManifest.xml && echo '✅ VISIBILITY OK' || { echo '❌ VISIBILITY MISSING'; exit 1; }
 
       - name: Build APK
         run: |
