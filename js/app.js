@@ -79,11 +79,11 @@ function updateSelectedGameName() {
 }
 
 const servers = [
-    { name: "Iran - Tehran", host: "ir1.nova.gg", port: 443, auto: true, ping: null, angle: 30, dist: 40 },
-    { name: "Turkey - Istanbul", host: "tr1.nova.gg", port: 443, auto: true, ping: null, angle: 320, dist: 65 },
-    { name: "Germany - Frankfurt", host: "de1.nova.gg", port: 443, auto: true, ping: null, angle: 290, dist: 90 },
-    { name: "UAE - Dubai", host: "ae1.nova.gg", port: 443, auto: true, ping: null, angle: 160, dist: 55 },
-    { name: "Singapore - SG", host: "sg1.nova.gg", port: 443, auto: true, ping: null, angle: 110, dist: 95 }
+    { name: "Iran - Tehran", host: "www.aparat.com", port: 443, auto: true, ping: null, angle: 30, dist: 40 },
+    { name: "Turkey - Istanbul", host: "www.hurriyet.com.tr", port: 443, auto: true, ping: null, angle: 320, dist: 65 },
+    { name: "Germany - Frankfurt", host: "www.t-online.de", port: 443, auto: true, ping: null, angle: 290, dist: 90 },
+    { name: "UAE - Dubai", host: "www.etisalat.ae", port: 443, auto: true, ping: null, angle: 160, dist: 55 },
+    { name: "Singapore - SG", host: "www.singtel.com", port: 443, auto: true, ping: null, angle: 110, dist: 95 }
 ];
 
 function switchServerTab(tab, btn) {
@@ -103,7 +103,7 @@ function renderServerDots() {
     const dotsGroup = document.getElementById("serverDots");
     if (!dotsGroup) return;
     const center = 110;
-    const best = servers.filter(s => s.ping !== null).sort((a, b) => a.ping - b.ping)[0];
+    const best = servers.filter(s => s.ping !== null && s.ping < 999).sort((a, b) => a.ping - b.ping)[0];
     dotsGroup.innerHTML = servers.map(s => {
         const rad = s.angle * Math.PI / 180;
         const x = center + Math.cos(rad) * s.dist;
@@ -137,7 +137,7 @@ function renderServers() {
         return;
     }
     list.innerHTML = filtered.map(server => {
-        const pingText = server.ping === null ? "..." : server.ping + " ms";
+        const pingText = server.ping === null ? "..." : (server.ping >= 999 ? "OFF" : server.ping + " ms");
         const badgeClass = server.ping === null ? "" : pingClass(server.ping);
         const bestClass = state.currentBest && server.host === state.currentBest ? "best" : "";
         const manualClass = state.manualSelected === server.host ? "manual-selected" : "";
@@ -164,39 +164,32 @@ const DNS_SERVERS = [
     { name: "Google", host: "8.8.8.8", region: "US" }
 ];
 
-// پینگ واقعی با fetch و timeout
-async function realPing(host, timeout = 2000) {
-    const start = performance.now();
+// پینگ واقعی: زمان تا پاسخ یا شکست اتصال
+async function realPing(host, useHttps) {
+    const url = (useHttps ? 'https://' : 'http://') + host + '/';
+    const ctrl = new AbortController();
+    const timer = setTimeout(function () { ctrl.abort(); }, 3000);
+    const startT = performance.now();
     try {
-        await fetch(`http://${host}`, { 
-            mode: 'no-cors',
-            cache: 'no-store'
-        }).catch(() => {});
-        return Math.floor(performance.now() - start);
-    } catch (e) {
-        return 9999;
-    }
+        await fetch(url, { mode: 'no-cors', cache: 'no-store', signal: ctrl.signal });
+    } catch (e) {}
+    clearTimeout(timer);
+    const ms = Math.floor(performance.now() - startT);
+    return ms >= 2900 ? 999 : ms;
 }
 
-// پینگ سرور (با DNS تست)
+// پینگ سرور + تست DNS ها
 async function pingServer(server) {
-    // اول پینگ DNS سرور نزدیک رو چک کن
     const dnsTests = await Promise.all(
         DNS_SERVERS.slice(0, 3).map(async dns => ({
             dns: dns.name,
-            ping: await realPing(dns.host)
+            ping: await realPing(dns.host, false)
         }))
     );
-    
-    const bestDns = dnsTests.reduce((a, b) => a.ping < b.ping ? a : b);
-    
-    // پینگ واقعی سرور
-    const ping = await realPing(server.host);
-    
-    return {
-        ping: ping === 9999 ? bestDns.ping + 20 : ping,
-        bestDns: bestDns.dns
-    };
+    const ok = dnsTests.filter(d => d.ping < 999);
+    const bestDns = ok.length ? ok.reduce((x, y) => x.ping < y.ping ? x : y) : { dns: '-', ping: 999 };
+    const ping = await realPing(server.host, true);
+    return { ping: ping, bestDns: bestDns.dns };
 }
 
 async function fakePing(server) {
@@ -402,7 +395,7 @@ function initApp() {
             server.ping = await fakePing(server);
             renderServers();
         }
-        const best = serversToTest.filter(s => s.ping !== null).sort((a, b) => a.ping - b.ping)[0];
+        const best = serversToTest.filter(s => s.ping !== null && s.ping < 999).sort((a, b) => a.ping - b.ping)[0];
         clearInterval(state.boostTimer);
         setRing(100);
         if (best) {
