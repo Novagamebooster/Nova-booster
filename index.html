@@ -334,39 +334,12 @@
                 });
                 </script>
 
-                <div class="settings-row" style="border-bottom:none;margin-top:15px;">
-                    <button id="debugGamesBtn" style="width:100%;padding:14px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:10px;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🔍 نمایش همه اپ‌های نصب‌شده (دیباگ)</button>
-                </div>
-                <div id="debugGamesList" style="display:none;margin-top:10px;padding:15px;background:rgba(0,0,0,.5);border-radius:10px;max-height:400px;overflow-y:auto;font-family:monospace;font-size:12px;color:#fff;"></div>
-                <script>
-                document.addEventListener('DOMContentLoaded', function(){
-                  var b=document.getElementById('debugGamesBtn');
-                  var list=document.getElementById('debugGamesList');
-                  if(b) b.onclick=async function(){
-                    list.style.display='block';
-                    list.innerHTML='⏳ در حال گرفتن لیست...';
-                    if(!window.Capacitor || !Capacitor.Plugins || !Capacitor.Plugins.BoostCore) {
-                      list.innerHTML='❌ فقط در APK کار می‌کند';
-                      return;
-                    }
-                    try {
-                      var res = await Capacitor.Plugins.BoostCore.listInstalledGames();
-                      var games = res.games || [];
-                      var html = '<b>✅ ' + games.length + ' اپ نصب‌شده:</b><br><br>';
-                      games.forEach(function(g){
-                        html += '<div style="margin-bottom:6px;padding:6px;background:rgba(255,255,255,.1);border-radius:6px;">';
-                        html += '<b style="color:#34d399;">' + g.name + '</b><br>';
-                        html += '<span style="color:#60a5fa;font-size:11px;">' + g.pkg + '</span></div>';
-                      });
-                      list.innerHTML = html;
-                    } catch(e) { list.innerHTML = '❌ خطا: ' + e.message; }
-                  };
-                });
-                </script>
+                
 
 </section>
 
     </main>
+            <div style="display:none;" aria-hidden="true"><button id="debugAppsBtn"></button><button id="debugBtn"></button><div id="debugAppsList"></div><div id="debugList"></div></div>
         <div id="paymentModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;padding:16px;overflow-y:auto;">
       <div style="max-width:430px;margin:16px auto;background:#0f1420;border-radius:18px;padding:22px;border:1px solid #1e293b;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
@@ -397,7 +370,6 @@
         <div style="color:#64748b;font-size:11px;margin-top:12px;line-height:1.8;text-align:center;">پس از ثبت، ادمین فوراً در تلگرام مطلع می‌شود و<br>معمولاً کمتر از ۱ ساعت اشتراک شما فعال می‌شود</div>
       </div>
     </div>
-    <div style="display:none;" aria-hidden="true"><button id="debugAppsBtn"></button><button id="debugBtn"></button><div id="debugAppsList"></div><div id="debugList"></div></div>
     <script src="js/pay.js?v=1789335450"></script>
     <style>
     body {
