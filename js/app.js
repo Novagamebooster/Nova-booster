@@ -256,6 +256,14 @@ function countUpPing(el, target) {
     requestAnimationFrame(frame);
 }
 
+function dnsForServer(name) {
+    if (name.includes('Iran')) return '78.157.42.100';
+    if (name.includes('Turkey')) return '185.22.136.20';
+    if (name.includes('Germany')) return '85.214.20.141';
+    if (name.includes('UAE')) return '195.229.241.222';
+    return '165.21.83.88';
+}
+
 async function launchGame(game) {
     if (!game || !game.pkg) { toast('بازی انتخاب نشده!'); return; }
     const storeUrl = 'https://play.google.com/store/search?q=' + encodeURIComponent(game.name);
@@ -311,6 +319,9 @@ function stopBoost() {
     document.getElementById("route").textContent = "--";
     document.getElementById("boostBtn").innerHTML = 'START BOOST<span class="btn-sub">شروع بوست</span>';
     state.currentBest = null;
+    if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BoostCore && Capacitor.Plugins.BoostCore.stopVpn) {
+        try { Capacitor.Plugins.BoostCore.stopVpn({}); } catch (e) {}
+    }
     const ob = document.getElementById('openGameBtn');
     if (ob) ob.style.display = 'none';
     renderServers();
@@ -412,6 +423,12 @@ function initApp() {
             renderHistory();
             renderServers();
             toast("Best server found");
+            if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BoostCore && Capacitor.Plugins.BoostCore.startVpn) {
+                try {
+                    await Capacitor.Plugins.BoostCore.startVpn({ dns: dnsForServer(best.name) });
+                    toast('🛡️ بوستر DNS فعال شد!');
+                } catch (e) {}
+            }
             const openBtn = document.getElementById('openGameBtn');
             if (openBtn) {
                 openBtn.style.display = 'block';
