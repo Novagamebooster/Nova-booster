@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-title" content="NOVA">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=1789292838">
+    <link rel="stylesheet" href="css/style.css?v=1789298757">
 </head>
 <body data-theme="neon">
 <div id="novaSplash">
@@ -195,6 +195,7 @@
                     START BOOST
                     <span class="btn-sub">شروع بوست</span>
                 </button>
+                <button id="openGameBtn" class="btn-full" style="display:none;margin-top:10px;background:linear-gradient(135deg,#34d399,#05966d);">🎮 باز کردن بازی</button>
             </div>
 
             <div class="section-title">
@@ -346,13 +347,13 @@
     <div id="toast"></div>
 
     <!-- Scripts -->
-    <script src="js/games.js?v=1789297204"></script>
-    <script src="js/app.js?v=1789297204"></script>
+    <script src="js/games.js?v=1789298757"></script>
+    <script src="js/app.js?v=1789298757"></script>
     
     <!-- Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js?v=1789297204')
+            navigator.serviceWorker.register('./sw.js?v=1789298757')
                 .then(reg => console.log('SW registered'))
                 .catch(err => console.log('SW registration failed'));
         }

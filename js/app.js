@@ -259,6 +259,27 @@ function countUpPing(el, target) {
     requestAnimationFrame(frame);
 }
 
+async function launchGame(game) {
+    if (!game || !game.pkg) { toast('بازی انتخاب نشده!'); return; }
+    const storeUrl = 'https://play.google.com/store/search?q=' + encodeURIComponent(game.name);
+    if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BoostCore && Capacitor.Plugins.BoostCore.launchGame) {
+        try {
+            const res = await Capacitor.Plugins.BoostCore.launchGame({ pkg: game.pkg });
+            if (res && res.launched) { toast('🎮 بازی باز شد!'); return; }
+        } catch (e) {}
+        window.location.href = storeUrl;
+        return;
+    }
+    let left = false;
+    const timer = setTimeout(function () {
+        if (!left) window.location.href = storeUrl;
+    }, 1500);
+    document.addEventListener('visibilitychange', function onHide() {
+        if (document.hidden) { left = true; clearTimeout(timer); document.removeEventListener('visibilitychange', onHide); }
+    });
+    window.location.href = 'intent://#Intent;package=' + game.pkg + ';end';
+}
+
 function stopBoost() {
     state.boosting = false;
     clearInterval(state.boostTimer);
@@ -273,6 +294,8 @@ function stopBoost() {
     document.getElementById("route").textContent = "--";
     document.getElementById("boostBtn").innerHTML = 'START BOOST<span class="btn-sub">شروع بوست</span>';
     state.currentBest = null;
+    const ob = document.getElementById('openGameBtn');
+    if (ob) ob.style.display = 'none';
     renderServers();
     toast("Boost stopped");
 }
@@ -340,6 +363,7 @@ function initApp() {
 
     document.getElementById("boostBtn").onclick = async function () {
         if (state.boosting) { stopBoost(); return; }
+        if (!state.selectedGame) { toast('اول یک بازی انتخاب کن! 🎮'); return; }
         state.boosting = true;
         this.innerHTML = 'STOP BOOST<span class="btn-sub">توقف بوست</span>';
         document.getElementById("boostCard").classList.add("scanning");
@@ -371,6 +395,11 @@ function initApp() {
             renderHistory();
             renderServers();
             toast("Best server found");
+            const openBtn = document.getElementById('openGameBtn');
+            if (openBtn) {
+                openBtn.style.display = 'block';
+                openBtn.onclick = () => launchGame(getGameById(state.selectedGame));
+            }
         } else {
             document.getElementById("pingValue").textContent = "--";
             document.getElementById("serverValue").textContent = "NO SERVER FOUND";

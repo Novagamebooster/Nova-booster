@@ -1,6 +1,6 @@
 const NOVA_GAMES = [
     {
-        id: "mlbb",
+        id: "mlbb", pkg: "com.mobile.legends",
         name: "Mobile Legends: Bang Bang",
         shortName: "MLBB",
         genre: "MOBA",
@@ -9,7 +9,7 @@ const NOVA_GAMES = [
         pingOffset: 5
     },
     {
-        id: "codm",
+        id: "codm", pkg: "com.activision.callofduty.shooter",
         name: "Call of Duty: Mobile",
         shortName: "CODM",
         genre: "FPS",
@@ -18,7 +18,7 @@ const NOVA_GAMES = [
         pingOffset: 10
     },
     {
-        id: "df",
+        id: "df", pkg: "com.levelinfinite.dfmobile",
         name: "Delta Force",
         shortName: "DF",
         genre: "Tactical FPS",
@@ -27,7 +27,7 @@ const NOVA_GAMES = [
         pingOffset: 18
     },
     {
-        id: "pubg",
+        id: "pubg", pkg: "com.pubg.imobile",
         name: "PUBG Mobile",
         shortName: "PUBG",
         genre: "Battle Royale",
@@ -36,7 +36,7 @@ const NOVA_GAMES = [
         pingOffset: 8
     },
     {
-        id: "ff",
+        id: "ff", pkg: "com.dts.freefireth",
         name: "Free Fire",
         shortName: "FF",
         genre: "Battle Royale",
@@ -45,7 +45,7 @@ const NOVA_GAMES = [
         pingOffset: 6
     },
     {
-        id: "fc",
+        id: "fc", pkg: "com.ea.gp.fifamobile",
         name: "EA SPORTS FC Mobile",
         shortName: "FC",
         genre: "Sports",
@@ -54,7 +54,7 @@ const NOVA_GAMES = [
         pingOffset: 12
     },
     {
-        id: "ef",
+        id: "ef", pkg: "jp.konami.pesam",
         name: "eFootball",
         shortName: "eF",
         genre: "Sports",
@@ -63,7 +63,7 @@ const NOVA_GAMES = [
         pingOffset: 14
     },
     {
-        id: "hok",
+        id: "hok", pkg: "com.levelinfinite.hokglobal",
         name: "Honor of Kings",
         shortName: "HOK",
         genre: "MOBA",
