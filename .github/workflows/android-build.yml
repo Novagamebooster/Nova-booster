@@ -140,7 +140,7 @@ jobs:
                   JSObject ret = new JSObject();
                   Intent launch = getContext().getPackageManager().getLaunchIntentForPackage(pkg);
                   if (launch != null) {
-                      startActivity(launch);
+                      getActivity().startActivity(launch);
                       ret.put("launched", true);
                   } else {
                       ret.put("launched", false);
