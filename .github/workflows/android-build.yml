@@ -117,12 +117,15 @@ jobs:
           cat << 'EOF' > app/src/main/java/com/novagamebooster/app/BoostCorePlugin.java
           package com.novagamebooster.app;
           import android.content.Intent;
+          import android.content.pm.ResolveInfo;
           import android.net.VpnService;
+          import com.getcapacitor.JSArray;
           import com.getcapacitor.JSObject;
           import com.getcapacitor.Plugin;
           import com.getcapacitor.PluginCall;
           import com.getcapacitor.PluginMethod;
           import com.getcapacitor.annotation.CapacitorPlugin;
+          import java.util.List;
 
           @CapacitorPlugin(name = "BoostCore")
           public class BoostCorePlugin extends Plugin {
@@ -134,17 +137,59 @@ jobs:
                   ret.put("status", "success");
                   call.resolve(ret);
               }
+
               @PluginMethod
               public void launchGame(PluginCall call) {
-                  String pkg = call.getString("pkg");
+                  String pkgList = call.getString("pkg", "");
+                  String[] pkgs = pkgList.split(",");
                   JSObject ret = new JSObject();
-                  Intent launch = getContext().getPackageManager().getLaunchIntentForPackage(pkg);
-                  if (launch != null) {
-                      getActivity().startActivity(launch);
-                      ret.put("launched", true);
-                  } else {
-                      ret.put("launched", false);
+                  for (String p : pkgs) {
+                      p = p.trim();
+                      if (p.isEmpty()) continue;
+                      Intent launch = getContext().getPackageManager().getLaunchIntentForPackage(p);
+                      if (launch != null) {
+                          launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                          getActivity().startActivity(launch);
+                          ret.put("launched", true);
+                          ret.put("pkg", p);
+                          call.resolve(ret);
+                          return;
+                      }
                   }
+                  ret.put("launched", false);
+                  ret.put("tried", pkgList);
+                  call.resolve(ret);
+              }
+
+              @PluginMethod
+              public void listInstalledGames(PluginCall call) {
+                  JSObject ret = new JSObject();
+                  JSArray list = new JSArray();
+                  try {
+                      Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+                      mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                      List<ResolveInfo> ris = getContext().getPackageManager().queryIntentActivities(mainIntent, 0);
+                      for (ResolveInfo ri : ris) {
+                          String pkg = ri.activityInfo.packageName;
+                          String name = ri.loadLabel(getContext().getPackageManager()).toString();
+                          String low = (pkg + " " + name).toLowerCase();
+                          if (low.contains("game") || low.contains("mobile") || low.contains("tencent") ||
+                              low.contains("supercell") || low.contains("moonton") || low.contains("garena") ||
+                              low.contains("levelinfinite") || low.contains("activision") || low.contains("konami") ||
+                              low.contains("pubg") || low.contains("freefire") || low.contains("honor") ||
+                              low.contains("legend") || low.contains("dota") || low.contains("fifa") ||
+                              low.contains("efootball") || low.contains("soccer") || low.contains("cod") ||
+                              low.contains("delta") || low.contains("proxima")) {
+                              JSObject obj = new JSObject();
+                              obj.put("pkg", pkg);
+                              obj.put("name", name);
+                              list.put(obj);
+                          }
+                      }
+                  } catch (Exception e) {
+                      ret.put("error", e.getMessage());
+                  }
+                  ret.put("games", list);
                   call.resolve(ret);
               }
           }
