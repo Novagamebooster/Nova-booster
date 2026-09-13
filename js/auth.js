@@ -22,6 +22,7 @@ async function loadSupabaseLib() {
 async function initSupabase() {
     const createClient = await loadSupabaseLib();
     supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
+            window.novaSupabase = supabase;
     const { data: { session } } = await supabase.auth.getSession();
     currentUser = session?.user || null;
     supabase.auth.onAuthStateChange((event, session) => {

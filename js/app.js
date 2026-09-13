@@ -376,6 +376,7 @@ function initApp() {
     createRadarParticles();
     renderHistory();
     loadProfile();
+    setTimeout(() => { checkPremium(); loadNotifications(); }, 800);
     updateStatus();
 
     document.getElementById("moreGamesBtn").onclick = () => {
@@ -451,9 +452,7 @@ function initApp() {
         };
     });
 
-    document.getElementById("buyBtn").onclick = () => {
-        toast("درگاه پرداخت به زودی فعال می‌شود");
-    };
+    document.getElementById("buyBtn").onclick = () => openBuyModal();
 
     const notifySwitch = document.getElementById("notifySwitch");
     notifySwitch.checked = localStorage.getItem("nova_notify") !== "0";
