@@ -1256,37 +1256,41 @@ body.nova-boosting #boostCard::after {
 
 
 
-/* ===== NOVA FLAGS: پرچم پارچه‌ای با موج داخلی ===== */
+/* نور ملایم که روی پارچه رد می‌شه */
+/* طرح پرچم کشورها */
+
+/* ===== NOVA FLAGS: پرچم واقعی با موج باد ===== */
 .nova-flag {
   display: inline-flex;
-  width: 24px; height: 16px;
+  width: 24px; height: 18px;
   margin-left: 6px;
-  vertical-align: -3px;
+  vertical-align: -4px;
   position: relative;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,.4));
+  border-radius: 2px;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.45));
 }
 .nova-flag i {
   display: block;
   width: 4px; height: 100%;
-  background-size: 24px 16px;
+  background-size: 24px 18px;
   background-repeat: no-repeat;
   animation: novaRipple 1.8s ease-in-out infinite;
 }
-.nova-flag i:nth-child(1){background-position:0 0;border-radius:2px 0 0 2px;}
+.nova-flag i:nth-child(1){background-position:0 0;}
 .nova-flag i:nth-child(2){background-position:-4px 0;}
 .nova-flag i:nth-child(3){background-position:-8px 0;}
 .nova-flag i:nth-child(4){background-position:-12px 0;}
 .nova-flag i:nth-child(5){background-position:-16px 0;}
-.nova-flag i:nth-child(6){background-position:-20px 0;border-radius:0 2px 2px 0;}
+.nova-flag i:nth-child(6){background-position:-20px 0;}
 @keyframes novaRipple {
   0%, 100% { transform: translateY(0) scaleY(1); filter: brightness(1); }
-  50%      { transform: translateY(-1.5px) scaleY(1.1); filter: brightness(1.3); }
+  50%      { transform: translateY(-1.5px) scaleY(1.1); filter: brightness(1.25); }
 }
-/* نور ملایم که روی پارچه رد می‌شه */
 .nova-flag::after {
   content: '';
   position: absolute; inset: 0;
-  background: linear-gradient(105deg, transparent 42%, rgba(255,255,255,.35) 50%, transparent 58%);
+  border-radius: 2px;
+  background: linear-gradient(105deg, transparent 42%, rgba(255,255,255,.3) 50%, transparent 58%);
   background-size: 250% 100%;
   animation: novaShine 3.6s linear infinite;
   pointer-events: none;
@@ -1295,20 +1299,9 @@ body.nova-boosting #boostCard::after {
   0%   { background-position: 180% 0; }
   100% { background-position: -80% 0; }
 }
-/* طرح پرچم کشورها */
-.flag-iran i { background-image:
-  radial-gradient(circle 1.8px at 12px 8px, #da0000 98%, transparent),
-  linear-gradient(180deg, #239f40 33.3%, #fff 33.3% 66.6%, #da0000 66.6%); }
-.flag-turkey i { background-image:
-  radial-gradient(circle 3.4px at 9px 8px, #fff 98%, transparent),
-  radial-gradient(circle 2.8px at 10.6px 8px, #e30a17 98%, transparent),
-  linear-gradient(#e30a17, #e30a17); }
-.flag-germany i { background-image:
-  linear-gradient(180deg, #000 33.3%, #dd0000 33.3% 66.6%, #ffce00 66.6%); }
-.flag-uae i { background-image:
-  linear-gradient(90deg, #ff0000 30%, rgba(0,0,0,0) 30%),
-  linear-gradient(180deg, #00732f 33.3%, #fff 33.3% 66.6%, #000 66.6%); }
-.flag-singapore i { background-image:
-  radial-gradient(circle 2.6px at 7px 4.5px, #fff 98%, transparent),
-  radial-gradient(circle 2.1px at 8.3px 4.5px, #ed2939 98%, transparent),
-  linear-gradient(180deg, #ed2939 50%, #fff 50%); }
+/* عکس پرچم کشورها + رنگ پایه (اگه عکس لود نشد) */
+.flag-iran i      { background-image: url('https://flagcdn.com/w40/ir.png'); background-color: #239f40; }
+.flag-turkey i    { background-image: url('https://flagcdn.com/w40/tr.png'); background-color: #e30a17; }
+.flag-germany i   { background-image: url('https://flagcdn.com/w40/de.png'); background-color: #000; }
+.flag-uae i       { background-image: url('https://flagcdn.com/w40/ae.png'); background-color: #00732f; }
+.flag-singapore i { background-image: url('https://flagcdn.com/w40/sg.png'); background-color: #ed2939; }

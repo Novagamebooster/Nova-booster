@@ -157,15 +157,21 @@ window.loadNotifications = loadNotifications;
 
 
 
-// ===== NOVA FLAGS: پرچم پارچه‌ای با موج داخلی =====
+
+// ===== NOVA FLAGS: پرچم واقعی با موج باد =====
 (function(){
   var FLAGS = [
-    ['Iran', 'iran'],
-    ['Turkey', 'turkey'],
-    ['Germany', 'germany'],
-    ['UAE', 'uae'],
-    ['Singapore', 'singapore']
+    ['Iran', 'iran', 'ir'],
+    ['Turkey', 'turkey', 'tr'],
+    ['Germany', 'germany', 'de'],
+    ['UAE', 'uae', 'ae'],
+    ['Singapore', 'singapore', 'sg']
   ];
+  // پیش‌لود کردن عکس پرچم‌ها (بدون چشمک)
+  FLAGS.forEach(function(f){
+    var im = new Image();
+    im.src = 'https://flagcdn.com/w40/' + f[2] + '.png';
+  });
   var base = 0;
   function decorate(){
     var sl = document.getElementById('serverList');
