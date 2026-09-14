@@ -140,7 +140,7 @@ window.loadNotifications = loadNotifications;
             el.style.boxShadow = '0 0 12px ' + cc + '44';
             continue;
           }
-          /* flags: clean version below */
+          
         }
       }
       var bb = document.getElementById('boostBtn');
@@ -155,7 +155,8 @@ window.loadNotifications = loadNotifications;
 
 
 
-// ===== NOVA FLAGS (clean): بدون چشمک + تکان ملایم =====
+
+// ===== NOVA FLAGS: موج واقعی داخل پرچم =====
 (function(){
   var FLAGS = [
     ['Iran', '🇮🇷'],
@@ -164,6 +165,7 @@ window.loadNotifications = loadNotifications;
     ['UAE', '🇦🇪'],
     ['Singapore', '🇸🇬']
   ];
+  var delay = 0;
   function decorate(){
     var sl = document.getElementById('serverList');
     if (!sl) return;
@@ -177,7 +179,8 @@ window.loadNotifications = loadNotifications;
         if (t.indexOf(FLAGS[f][0]) === 0) {
           el.dataset.novaflag = '1';
           var rest = t.slice(FLAGS[f][0].length).trim();
-          el.innerHTML = '<span class="nova-flag">' + FLAGS[f][1] + '</span> ' + rest;
+          var d = (delay++ % 5) * 0.25;
+          el.innerHTML = '<span class="nova-flag" style="animation-delay:' + d + 's">' + FLAGS[f][1] + '</span> ' + rest;
           break;
         }
       }

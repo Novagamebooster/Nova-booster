@@ -1254,16 +1254,30 @@ body.nova-boosting #boostCard::after {
     transition: none !important;
 }
 
-/* ===== NOVA FLAGS: تکان ملایم پرچم ===== */
+
+/* ===== NOVA FLAGS: موج واقعی داخل خود پرچم ===== */
 .nova-flag {
   display: inline-block;
-  transform-origin: 50% 90%;
   margin-left: 4px;
-  animation: novaFlagFlutter 2.4s ease-in-out infinite;
+  transform-origin: 0% 50%;
+  animation: novaWave 2.2s ease-in-out infinite;
+  filter: drop-shadow(1px 1px 0.5px rgba(0,0,0,0.25));
 }
-@keyframes novaFlagFlutter {
-  0%, 100% { transform: rotate(0deg); }
-  25%      { transform: rotate(-6deg); }
-  50%      { transform: rotate(4deg); }
-  75%      { transform: rotate(-3deg); }
+@keyframes novaWave {
+  0%, 100% {
+    transform: skewX(0deg) scaleX(1);
+    clip-path: polygon(0% 0%, 100% 2%, 100% 98%, 0% 100%);
+  }
+  25% {
+    transform: skewX(-4deg) scaleX(1.03);
+    clip-path: polygon(0% 5%, 100% 0%, 100% 100%, 0% 95%);
+  }
+  50% {
+    transform: skewX(3deg) scaleX(0.97);
+    clip-path: polygon(0% 10%, 100% 8%, 100% 92%, 0% 90%);
+  }
+  75% {
+    transform: skewX(-3deg) scaleX(1.02);
+    clip-path: polygon(0% 8%, 100% 10%, 100% 90%, 0% 92%);
+  }
 }
