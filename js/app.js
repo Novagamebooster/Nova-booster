@@ -79,11 +79,9 @@ function updateSelectedGameName() {
 }
 
 const servers = [
-    { name: "Iran - Tehran", host: "www.aparat.com", port: 443, auto: true, ping: null, angle: 30, dist: 40 },
-    { name: "Turkey - Istanbul", host: "www.hurriyet.com.tr", port: 443, auto: true, ping: null, angle: 320, dist: 65 },
-    { name: "Germany - Frankfurt", host: "www.t-online.de", port: 443, auto: true, ping: null, angle: 290, dist: 90 },
-    { name: "UAE - Dubai", host: "www.etisalat.ae", port: 443, auto: true, ping: null, angle: 160, dist: 55 },
-    { name: "Singapore - SG", host: "www.singtel.com", port: 443, auto: true, ping: null, angle: 110, dist: 95 }
+    { name: "Turkey - Istanbul", host: "www.hurriyet.com.tr", port: 443, auto: true, ping: null, angle: 320, dist: 65, country: "Turkey", wireguard: null },
+    { name: "Europe - Frankfurt", host: "www.t-online.de", port: 443, auto: true, ping: null, angle: 290, dist: 90, country: "Germany", wireguard: null },
+    { name: "UAE - Dubai", host: "www.etisalat.ae", port: 443, auto: true, ping: null, angle: 160, dist: 55, country: "UAE", wireguard: null }
 ];
 
 function switchServerTab(tab, btn) {
@@ -153,16 +151,6 @@ function renderServers() {
     renderServerDots();
 }
 
-// DNS سرورهای رایگان برای تست پینگ واقعی
-const DNS_SERVERS = [
-    { name: "Radar Game", host: "78.157.42.100", region: "IR-GAME" },
-    { name: "403 DNS", host: "178.22.122.100", region: "IR" },
-    { name: "Shecan", host: "10.202.10.10", region: "IR" },
-    { name: "Shatel", host: "217.218.127.104", region: "IR" },
-    { name: "AsiaTech", host: "85.15.1.1", region: "IR" },
-    { name: "Cloudflare", host: "1.1.1.1", region: "US" },
-    { name: "Google", host: "8.8.8.8", region: "US" }
-];
 
 // پینگ واقعی: زمان تا پاسخ یا شکست اتصال
 async function realPing(host, useHttps) {
@@ -178,20 +166,11 @@ async function realPing(host, useHttps) {
     return ms >= 2900 ? 999 : ms;
 }
 
-// پینگ سرور + تست DNS ها
+// پینگ مستقیم سرور (بدون DNS)
 async function pingServer(server) {
-    const dnsTests = await Promise.all(
-        DNS_SERVERS.slice(0, 3).map(async dns => ({
-            dns: dns.name,
-            ping: await realPing(dns.host, false)
-        }))
-    );
-    const ok = dnsTests.filter(d => d.ping < 999);
-    const bestDns = ok.length ? ok.reduce((x, y) => x.ping < y.ping ? x : y) : { dns: '-', ping: 999 };
     const raw = await realPing(server.host, true);
-    // زمان کامل HTTPS ≈ ۴ برابر RTT واقعی → تبدیل به پینگ تخمینی
     const ping = raw >= 999 ? 999 : Math.max(8, Math.round(raw / 4));
-    return { ping: ping, bestDns: bestDns.dns };
+    return { ping: ping };
 }
 
 async function fakePing(server) {
@@ -256,13 +235,7 @@ function countUpPing(el, target) {
     requestAnimationFrame(frame);
 }
 
-function dnsForServer(name) {
-    if (name.includes('Iran')) return '78.157.42.100';
-    if (name.includes('Turkey')) return '185.22.136.20';
-    if (name.includes('Germany')) return '85.214.20.141';
-    if (name.includes('UAE')) return '195.229.241.222';
-    return '165.21.83.88';
-}
+/* dnsForServer: removed */
 
 async function launchGame(game) {
     if (!game || !game.pkg) { toast('بازی انتخاب نشده!'); return; }
@@ -436,8 +409,8 @@ function initApp() {
             toast("Best server found");
             if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BoostCore && Capacitor.Plugins.BoostCore.startVpn) {
                 try {
-                    await Capacitor.Plugins.BoostCore.startVpn({ dns: dnsForServer(best.name) });
-                    toast('🛡️ بوستر DNS فعال شد!');
+                    await Capacitor.Plugins.BoostCore.startVpn({ server: best.name });
+                    toast('🛡️ سرور ' + best.name + ' فعال شد!');
                 } catch (e) {}
             }
             const openBtn = document.getElementById('openGameBtn');
