@@ -173,3 +173,28 @@ window.loadNotifications = loadNotifications;
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup); else setup();
 })();
+
+// ===== FIX: حذف چشمک بار اول =====
+(function(){
+  document.body.classList.add('nova-anti-flicker');
+  
+  // بعد از بار اول رندر، کلاس رو بردار
+  var observer = new MutationObserver(function(mutations){
+    var grid = document.getElementById('gamesGrid');
+    if (grid && grid.children.length > 3) {
+      setTimeout(function(){
+        document.body.classList.remove('nova-anti-flicker');
+        observer.disconnect();
+      }, 100);
+    }
+  });
+  
+  var grid = document.getElementById('gamesGrid');
+  if (grid) {
+    observer.observe(grid, { childList: true });
+    setTimeout(function(){
+      document.body.classList.remove('nova-anti-flicker');
+      observer.disconnect();
+    }, 3000);
+  }
+})();

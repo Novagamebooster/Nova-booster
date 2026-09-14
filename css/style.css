@@ -1253,3 +1253,11 @@ body.nova-boosting #boostCard::after {
 /* ===== FIX: بستن لیست بازی بدون رندر مجدد ===== */
 #gamesGrid.nova-collapsed > *:nth-child(n+5) { display: none !important; }
 #gamesGrid.nova-collapsed .game-card:nth-child(n+5) { display: none !important; }
+
+/* ===== FIX: حذف چشمک بار اول رندر ===== */
+body.nova-anti-flicker * {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+}
