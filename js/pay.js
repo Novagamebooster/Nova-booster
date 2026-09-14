@@ -140,11 +140,7 @@ window.loadNotifications = loadNotifications;
             el.style.boxShadow = '0 0 12px ' + cc + '44';
             continue;
           }
-          if (!el.dataset.novaflag) {
-            for (var k in FLAGS) {
-              if (t.indexOf(k) === 0) { el.textContent = FLAGS[k] + ' ' + t; el.dataset.novaflag = '1'; break; }
-            }
-          }
+          /* flags: clean version below */
         }
       }
       var bb = document.getElementById('boostBtn');
@@ -158,3 +154,40 @@ window.loadNotifications = loadNotifications;
 
 
 
+
+// ===== NOVA FLAGS (clean): بدون چشمک + تکان ملایم =====
+(function(){
+  var FLAGS = [
+    ['Iran', '🇮🇷'],
+    ['Turkey', '🇹🇷'],
+    ['Germany', '🇩🇪'],
+    ['UAE', '🇦🇪'],
+    ['Singapore', '🇸🇬']
+  ];
+  function decorate(){
+    var sl = document.getElementById('serverList');
+    if (!sl) return;
+    var nodes = sl.querySelectorAll('*');
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      if (el.children.length) continue;
+      if (el.dataset.novaflag) continue;
+      var t = (el.textContent || '').trim();
+      for (var f = 0; f < FLAGS.length; f++) {
+        if (t.indexOf(FLAGS[f][0]) === 0) {
+          el.dataset.novaflag = '1';
+          var rest = t.slice(FLAGS[f][0].length).trim();
+          el.innerHTML = '<span class="nova-flag">' + FLAGS[f][1] + '</span> ' + rest;
+          break;
+        }
+      }
+    }
+  }
+  function watch(){
+    var sl = document.getElementById('serverList');
+    if (!sl) { setTimeout(watch, 300); return; }
+    new MutationObserver(function(){ decorate(); }).observe(sl, { childList: true, subtree: true, characterData: true });
+    decorate();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
+})();

@@ -1253,3 +1253,17 @@ body.nova-boosting #boostCard::after {
     animation: none !important;
     transition: none !important;
 }
+
+/* ===== NOVA FLAGS: تکان ملایم پرچم ===== */
+.nova-flag {
+  display: inline-block;
+  transform-origin: 50% 90%;
+  margin-left: 4px;
+  animation: novaFlagFlutter 2.4s ease-in-out infinite;
+}
+@keyframes novaFlagFlutter {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(-6deg); }
+  50%      { transform: rotate(4deg); }
+  75%      { transform: rotate(-3deg); }
+}
