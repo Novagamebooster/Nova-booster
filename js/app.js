@@ -379,9 +379,27 @@ function initApp() {
     setTimeout(() => { checkPremium(); loadNotifications(); }, 800);
     updateStatus();
 
+    let gamesFullyRendered = false;
     document.getElementById("moreGamesBtn").onclick = () => {
-        state.showAllGames = !state.showAllGames;
-        renderGames();
+        if (!gamesFullyRendered) {
+            renderGames();
+            gamesFullyRendered = true;
+            setTimeout(() => {
+                const cards = document.querySelectorAll('#gamesGrid > *');
+                cards.forEach((card, i) => {
+                    if (i >= 4) card.style.display = 'none';
+                });
+            }, 10);
+        } else {
+            const cards = document.querySelectorAll('#gamesGrid > *');
+            const extras = Array.from(cards).slice(4);
+            const anyHidden = extras.some(c => c.style.display === 'none');
+            extras.forEach(card => {
+                card.style.display = anyHidden ? '' : 'none';
+            });
+        }
+        const btn = document.getElementById("moreGamesBtn");
+        if (btn) btn.textContent = btn.textContent.includes('⌄') ? '⌃' : '⌄';
     };
 
     document.getElementById("refreshServers").onclick = async () => {

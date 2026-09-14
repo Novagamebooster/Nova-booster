@@ -158,20 +158,3 @@ window.loadNotifications = loadNotifications;
 
 
 
-// ===== NOVA: warm-up عکس‌ها (حذف چشمک بار اول) =====
-(function(){
-  function warm(){
-    var btn = document.getElementById('moreGamesBtn');
-    if (!btn || btn.dataset.novaWarm) return;
-    btn.dataset.novaWarm = '1';
-    try {
-      // دو کلیک پشت سر هم در یک لحظه:
-      // کلیک ۱ = رندر همه بازی‌ها (عکس‌ها لود و دیکد می‌شن)
-      // کلیک ۲ = برگشت به حالت عادی
-      // هر دو در یک ثانیه اتفاق می‌افتن → کاربر هیچ تغییری نمی‌بینه
-      btn.click();
-      btn.click();
-    } catch(e){}
-  }
-  setTimeout(warm, 1200);
-})();
