@@ -148,10 +148,28 @@ window.loadNotifications = loadNotifications;
         }
       }
       var bb = document.getElementById('boostBtn');
-      var on = !!bb && (/STOP/i.test(bb.textContent) || bb.classList.contains('active') || bb.classList.contains('boosting'));
+      var pingOn = !!pv && pv.textContent.trim() !== '--' && !isNaN(parseInt(pv.textContent, 10)); var btnStop = !!bb && /STOP/i.test(bb.textContent); var on = !!(pingOn && btnStop);
       document.body.classList.toggle('nova-boosting', on);
     } catch(e){}
   }
-  setInterval(tick, 1200);
+  setInterval(tick, 500);
   document.addEventListener('DOMContentLoaded', tick);
+})();
+
+// ===== FIX: toggle بازی‌ها بدون رندر مجدد (بدون چشمک) =====
+(function(){
+  function setup(){
+    var btn = document.getElementById('moreGamesBtn');
+    var grid = document.getElementById('gamesGrid');
+    if (!btn || !grid) return;
+    var renderedAll = false;
+    btn.addEventListener('click', function(e){
+      if (!renderedAll) { renderedAll = true; return; }
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      grid.classList.toggle('nova-collapsed');
+      btn.textContent = grid.classList.contains('nova-collapsed') ? '⌄' : '⌃';
+    }, true);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup); else setup();
 })();
