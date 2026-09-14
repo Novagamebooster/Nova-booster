@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="NOVA">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=1789350000">
+    <link rel="stylesheet" href="css/style.css?v=1789360000">
 </head>
 <body data-theme="neon">
 <div id="novaSplash">
@@ -38,16 +38,12 @@
 })();
 </script>
 
-
 <script>
 (async function() {
     const { initSupabase, signOut, getProfile, isLoggedIn } = await import('./js/auth.js');
     try { await initSupabase(); } catch (e) { window.location.href = 'auth.html'; return; }
     
-    if (!isLoggedIn()) {
-        window.location.href = 'auth.html';
-        return;
-    }
+    if (!isLoggedIn()) { window.location.href = 'auth.html'; return; }
     
     const profile = await getProfile();
     if (profile) {
@@ -91,285 +87,348 @@
 })();
 </script>
 
+<div class="bgAnimated"></div>
+<div class="lines"></div>
 
-    <div class="bgAnimated"></div>
-    <div class="lines"></div>
-
-    <header class="topbar">
-        <div class="brand">
-            <div class="logo"><span>N</span></div>
-            <div>
-                <h1>NOVA</h1>
-                <p>Game Booster</p>
-            </div>
+<header class="topbar">
+    <div class="brand">
+        <div class="logo"><span>N</span></div>
+        <div>
+            <h1>NOVA</h1>
+            <p>Game Booster</p>
         </div>
-        <div class="status" id="netStatus">ONLINE</div>
-    </header>
-
-    <main>
-
-        <!-- HOME -->
-        <section id="home" class="page active">
-            <div class="card boost-card" id="boostCard">
-                <div class="boost-title">BOOST CORE</div>
-                <div class="selected-game" id="selectedGameName">NO GAME SELECTED</div>
-
-                <div class="boost-ring" id="boostRing">
-                    <div class="pulse-ring pr1"></div>
-                    <div class="pulse-ring pr2"></div>
-                    <div class="pulse-ring pr3"></div>
-
-                    <svg class="ring-svg" viewBox="0 0 220 220">
-                        <defs>
-                            <linearGradient id="novaGrad" x1="0" y1="0" x2="1" y2="1">
-                                <stop offset="0%" stop-color="#00c8ff"/>
-                                <stop offset="35%" stop-color="#3b82f6"/>
-                                <stop offset="70%" stop-color="#a855f7"/>
-                                <stop offset="100%" stop-color="#00ffd1"/>
-                            </linearGradient>
-                        </defs>
-                        <circle class="ring-bg" cx="110" cy="110" r="100"/>
-                        <circle class="ring-progress" id="ringProgress" cx="110" cy="110" r="100"/>
-                    </svg>
-
-                    <div class="radar-layer">
-                        <div class="radar-glow"></div>
-                        <div class="holo-lines"></div>
-                        <div class="scan-cone"></div>
-
-                        <svg class="radar-svg" viewBox="0 0 220 220">
-                            <circle class="radar-ring r1" cx="110" cy="110" r="30"/>
-                            <circle class="radar-ring r2" cx="110" cy="110" r="50"/>
-                            <circle class="radar-ring r3" cx="110" cy="110" r="70"/>
-                            <circle class="radar-ring r4" cx="110" cy="110" r="90"/>
-
-                            <line class="radar-spoke" x1="110" y1="110" x2="110" y2="20"/>
-                            <line class="radar-spoke" x1="110" y1="110" x2="177" y2="43"/>
-                            <line class="radar-spoke" x1="110" y1="110" x2="205" y2="110"/>
-                            <line class="radar-spoke" x1="110" y1="110" x2="177" y2="177"/>
-                            <line class="radar-spoke" x1="110" y1="110" x2="110" y2="205"/>
-                            <line class="radar-spoke" x1="110" y1="110" x2="43" y2="177"/>
-                            <line class="radar-spoke" x1="110" y1="110" x2="15" y2="110"/>
-                            <line class="radar-spoke" x1="110" y1="110" x2="43" y2="43"/>
-
-                            <circle class="radar-wave w1" cx="110" cy="110" r="95"/>
-                            <circle class="radar-wave w2" cx="110" cy="110" r="95"/>
-                            <circle class="radar-wave w3" cx="110" cy="110" r="95"/>
-
-                            <g id="serverDots"></g>
-                        </svg>
-
-                        <div class="radar-particles" id="radarParticles"></div>
-                    </div>
-
-                    <div class="core">
-                        <div class="ping-value">
-                            <span id="pingValue">--</span>
-                            <span class="ping-unit" id="pingUnit" style="display:none;">ms</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="server-label" id="serverValue">SELECT A SERVER</div>
-
-                <div class="metrics">
-                    <div class="metric"><b id="jitter">--</b><span>JITTER</span></div>
-                    <div class="metric"><b id="loss">--</b><span>LOSS</span></div>
-                    <div class="metric"><b id="route">--</b><span>ROUTE</span></div>
-                </div>
-
-                <div class="section-title" style="margin-top:14px;">
-                    <h2>PING HISTORY</h2>
-                    <span>LAST 10</span>
-                </div>
-
-                <div id="pingHistory" class="history"></div>
-
-                <button id="boostBtn" class="btn-boost">
-                    START BOOST
-                    <span class="btn-sub">شروع بوست</span>
-                </button>
-                <button id="openGameBtn" class="btn-full" style="display:none;margin-top:10px;background:linear-gradient(135deg,#34d399,#05966d);">🎮 باز کردن بازی</button>
-            </div>
-
-            <div class="section-title">
-                <h2>GAMES</h2>
-                <span>TAP TO SELECT</span>
-            </div>
-
-            <div id="gamesGrid" class="game-grid"></div>
-            <button id="moreGamesBtn" class="btn-more">⌄</button>
-
-            <div class="section-title">
-                <h2>SERVERS</h2>
-                <span>AUTO + MANUAL</span>
-            </div>
-
-            <div class="server-tabs">
-                <button class="server-tab active" onclick="switchServerTab('auto', this)">اتوماتیک</button>
-                <button class="server-tab" onclick="switchServerTab('manual', this)">دستی</button>
-            </div>
-
-            <div id="serverList"></div>
-
-            <button id="refreshServers" class="btn-full">REFRESH SERVERS</button>
-        </section>
-
-        <!-- PROFILE -->
-        <section id="profile" class="page">
-            <div class="card">
-                <div class="section-title" style="margin-top:0;">
-                    <h2>PROFILE</h2>
-                    <span>DEMO</span>
-                </div>
-
-                <label class="label">USERNAME</label>
-                <input id="username" class="input" placeholder="e.g. NovaPro">
-
-                <label class="label">EMAIL</label>
-                <input id="email" class="input" placeholder="example@gmail.com">
-
-                <button id="saveProfile" class="btn-full">SAVE PROFILE</button>
-            </div>
-
-            <div class="card">
-                <div class="section-title" style="margin-top:0;">
-                    <h2>PREMIUM</h2>
-                </div>
-
-                <div class="plans">
-                    <div class="plan"><b>1 MONTH</b><span>یک ماهه</span><div style="margin-top:8px;color:#34d399;font-size:13px;font-weight:700;">۴۹٬۰۰۰ تومان</div></div>
-                    <div class="plan"><b>3 MONTHS</b><span>سه ماهه</span><div style="margin-top:8px;color:#34d399;font-size:13px;font-weight:700;">۱۲۹٬۰۰۰ تومان</div></div>
-                    <div class="plan"><b>6 MONTHS</b><span>شش ماهه</span><div style="margin-top:8px;color:#34d399;font-size:13px;font-weight:700;">۲۲۹٬۰۰۰ تومان</div></div>
-                    <div class="plan"><b>12 MONTHS</b><span>دوازده ماهه</span><div style="margin-top:8px;color:#34d399;font-size:13px;font-weight:700;">۳۹۹٬۰۰۰ تومان</div></div>
-                </div>
-                <div id="premiumStatus" style="display:none;padding:14px;border-radius:12px;margin-top:14px;text-align:center;"></div>
-                <button id="buyBtn" class="btn-full" style="margin-top:14px;">خرید اشتراک</button>
-            </div>
-        </section>
-
-        <!-- SETTINGS -->
-        <section id="settings" class="page">
-            <div class="card">
-                <div class="section-title" style="margin-top:0;">
-                    <h2>تنظیمات</h2>
-                    <span>اپ</span>
-                </div>
-
-                <div class="settings-row">
-                    <span>تم اپ</span>
-                    <div class="theme-btns">
-                        <button class="theme-btn active" data-theme="neon">نئون ترکیبی</button>
-                        <button class="theme-btn" data-theme="white">روشن</button>
-                    </div>
-                </div>
-
-                <div class="settings-row">
-                    <span>اعلان بروزرسانی</span>
-                    <input type="checkbox" id="notifySwitch" class="switch">
-                </div>
-
-                <div class="settings-row">
-                    <span>پشتیبانی</span>
-                    <b>support@nova.local</b>
-                </div>
-                <div class="settings-row">
-                    <span>نسخه</span>
-                    <b>4.0.0</b>
-                </div>
-            </div>
-
-            <div class="card">
-                <p class="muted">
-                    نوا — رادار هولوگرافیک، طراحی مینیمال، بدون صدا.
-                </p>
-            </div>
-                <div class="settings-row" style="margin-top:20px;">
-                    <button onclick="novaLogout()" style="
-                        width:100%;
-                        padding:14px;
-                        background: linear-gradient(135deg, #ef4444, #dc2626);
-                        border: none;
-                        border-radius: 10px;
-                        color: white;
-                        font-size: 14px;
-                        font-weight: 700;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        gap: 8px;
-                        font-family: inherit;
-                    ">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                            <polyline points="16 17 21 12 16 7"/>
-                            <line x1="21" y1="12" x2="9" y2="12"/>
-                        </svg>
-                        خروج از حساب کاربری
-                    </button>
-                </div>
-        
-                <div class="settings-row" style="border-bottom:none;">
-                    <button id="clearAppDataBtn" style="width:100%;padding:14px;background:rgba(139,147,167,.12);border:1px solid rgba(139,147,167,.3);border-radius:10px;color:#8b93a7;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🧹 پاک کردن حافظه اپ</button>
-                </div>
-                <script>
-                document.addEventListener('DOMContentLoaded', function(){
-                  var b=document.getElementById('clearAppDataBtn');
-                  if(b) b.onclick=function(){
-                    if(!confirm('حافظه اپ پاک شود؟ از حساب خارج می‌شوی.')) return;
-                    localStorage.clear();
-                    if('caches' in window){ caches.keys().then(function(ks){ ks.forEach(function(k){ caches.delete(k); }); }); }
-                    if(navigator.serviceWorker){ navigator.serviceWorker.getRegistrations().then(function(rs){ rs.forEach(function(r){ r.unregister(); }); }); }
-                    location.href='auth.html';
-                  };
-                });
-                </script>
-
-</section>
-
-    </main>
-            <div style="display:none;" aria-hidden="true"><button id="debugAppsBtn"></button><button id="debugBtn"></button><div id="debugAppsList"></div><div id="debugList"></div></div>
-        <div id="paymentModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;padding:16px;overflow-y:auto;">
-      <div style="max-width:430px;margin:16px auto;background:#0f1420;border-radius:18px;padding:22px;border:1px solid #1e293b;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-          <h3 style="color:#fff;margin:0;font-size:17px;">💳 خرید اشتراک NOVA</h3>
-          <button onclick="document.getElementById('paymentModal').style.display='none'" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">×</button>
-        </div>
-        <div style="background:linear-gradient(135deg,rgba(251,191,36,.15),rgba(239,68,68,.15));border:1px solid #fbbf24;border-radius:10px;padding:10px;margin-bottom:14px;color:#fbbf24;font-size:12px;font-weight:700;text-align:center;line-height:1.8;">⚠️ پرداخت به صورت کارت‌به‌کارت انجام می‌شود<br>مراحل ۱ تا ۳ را به ترتیب انجام دهید</div>
-        <div id="paymentStatus" style="display:none;padding:12px;border-radius:10px;margin-bottom:12px;"></div>
-        <div style="background:rgba(59,130,246,.08);border:1px solid #3b82f6;border-radius:12px;padding:12px;margin-bottom:10px;">
-          <div style="color:#60a5fa;font-size:12px;font-weight:700;margin-bottom:6px;">مرحله ۱ — پلن و مبلغ</div>
-          <div style="color:#fff;font-size:14px;">پلن: <b id="selectedPlanDisplay"></b></div>
-          <div style="color:#34d399;font-size:18px;font-weight:700;margin-top:4px;" id="selectedAmountDisplay"></div>
-        </div>
-        <div style="background:rgba(52,211,153,.08);border:1px solid #34d399;border-radius:12px;padding:12px;margin-bottom:10px;">
-          <div style="color:#34d399;font-size:12px;font-weight:700;margin-bottom:8px;">مرحله ۲ — واریز به این کارت (در اپ بانک خودتان)</div>
-          <div style="background:rgba(0,0,0,.35);padding:10px;border-radius:8px;text-align:center;margin-bottom:8px;">
-            <div style="color:#fff;font-family:monospace;font-size:18px;letter-spacing:2px;font-weight:700;" id="cardNumber">6104331100536805</div>
-            <div style="color:#94a3b8;font-size:11px;margin-top:6px;">به نام: <span id="cardHolder">یزدان عبدی</span></div>
-          </div>
-          <button id="copyCardBtn" style="width:100%;padding:9px;background:#3b82f6;border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;">📋 کپی شماره کارت</button>
-        </div>
-        <div style="background:rgba(168,85,247,.08);border:1px solid #a855f7;border-radius:12px;padding:12px;margin-bottom:14px;">
-          <div style="color:#c4b5fd;font-size:12px;font-weight:700;margin-bottom:6px;">مرحله ۳ — کد پیگیری تراکنش را وارد کنید</div>
-          <div style="color:#94a3b8;font-size:11px;line-height:1.8;margin-bottom:8px;">پس از واریز، اپ بانک کدی به نام «کد پیگیری» می‌دهد. آن را اینجا وارد کنید تا ادمین واریز شما را تأیید کند:</div>
-          <input id="traceInput" type="text" maxlength="30" placeholder="مثال: 123456789012" style="width:100%;padding:12px;background:#0a0e1a;border:1px solid #1e293b;border-radius:8px;color:#fff;font-size:15px;box-sizing:border-box;">
-        </div>
-        <button id="submitPaymentBtn" style="width:100%;padding:14px;background:linear-gradient(135deg,#34d399,#05966d);border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">✅ ثبت کد پیگیری و ارسال درخواست</button>
-        <div style="color:#64748b;font-size:11px;margin-top:12px;line-height:1.8;text-align:center;">پس از ثبت، ادمین فوراً در تلگرام مطلع می‌شود و<br>معمولاً کمتر از ۱ ساعت اشتراک شما فعال می‌شود</div>
-      </div>
     </div>
-    <script src="js/pay.js?v=1789350000"></script>
-    <style>
-    body {
-      background:
-        radial-gradient(1100px 550px at 12% 8%, rgba(59,130,246,.13), transparent 60%),
-        radial-gradient(950px 500px at 88% 22%, rgba(168,85,247,.13), transparent 60%),
-        radial-gradient(900px 500px at 50% 92%, rgba(45,212,191,.11), transparent 60%),
-        linear-gradient(165deg, #060a14 0%, #0a1226 45%, #0b1a2e 100%) !important;
-      background-attachment: fixed !important;
+    <div class="status" id="netStatus">ONLINE</div>
+</header>
+
+<main>
+    <!-- HOME -->
+    <section id="home" class="page active">
+        <div class="card boost-card" id="boostCard">
+            <div class="boost-title">BOOST CORE</div>
+            <div class="selected-game" id="selectedGameName">NO GAME SELECTED</div>
+
+            <div class="boost-ring" id="boostRing">
+                <div class="pulse-ring pr1"></div>
+                <div class="pulse-ring pr2"></div>
+                <div class="pulse-ring pr3"></div>
+
+                <svg class="ring-svg" viewBox="0 0 220 220">
+                    <defs>
+                        <linearGradient id="novaGrad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#00c8ff"/>
+                            <stop offset="35%" stop-color="#3b82f6"/>
+                            <stop offset="70%" stop-color="#a855f7"/>
+                            <stop offset="100%" stop-color="#00ffd1"/>
+                        </linearGradient>
+                    </defs>
+                    <circle class="ring-bg" cx="110" cy="110" r="100"/>
+                    <circle class="ring-progress" id="ringProgress" cx="110" cy="110" r="100"/>
+                </svg>
+
+                <div class="radar-layer">
+                    <div class="radar-glow"></div>
+                    <div class="holo-lines"></div>
+                    <div class="scan-cone"></div>
+
+                    <svg class="radar-svg" viewBox="0 0 220 220">
+                        <circle class="radar-ring r1" cx="110" cy="110" r="30"/>
+                        <circle class="radar-ring r2" cx="110" cy="110" r="50"/>
+                        <circle class="radar-ring r3" cx="110" cy="110" r="70"/>
+                        <circle class="radar-ring r4" cx="110" cy="110" r="90"/>
+                        <line class="radar-spoke" x1="110" y1="110" x2="110" y2="20"/>
+                        <line class="radar-spoke" x1="110" y1="110" x2="177" y2="43"/>
+                        <line class="radar-spoke" x1="110" y1="110" x2="205" y2="110"/>
+                        <line class="radar-spoke" x1="110" y1="110" x2="177" y2="177"/>
+                        <line class="radar-spoke" x1="110" y1="110" x2="110" y2="205"/>
+                        <line class="radar-spoke" x1="110" y1="110" x2="43" y2="177"/>
+                        <line class="radar-spoke" x1="110" y1="110" x2="15" y2="110"/>
+                        <line class="radar-spoke" x1="110" y1="110" x2="43" y2="43"/>
+                        <circle class="radar-wave w1" cx="110" cy="110" r="95"/>
+                        <circle class="radar-wave w2" cx="110" cy="110" r="95"/>
+                        <circle class="radar-wave w3" cx="110" cy="110" r="95"/>
+                        <g id="serverDots"></g>
+                    </svg>
+                    <div class="radar-particles" id="radarParticles"></div>
+                </div>
+
+                <div class="core">
+                    <div class="ping-value">
+                        <span id="pingValue">--</span>
+                        <span class="ping-unit" id="pingUnit" style="display:none;">ms</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="server-label" id="serverValue">SELECT A SERVER</div>
+
+            <div class="metrics">
+                <div class="metric"><b id="jitter">--</b><span>JITTER</span></div>
+                <div class="metric"><b id="loss">--</b><span>LOSS</span></div>
+                <div class="metric"><b id="route">--</b><span>ROUTE</span></div>
+            </div>
+
+            <div class="section-title" style="margin-top:14px;">
+                <h2>PING HISTORY</h2>
+                <span>LAST 10</span>
+            </div>
+            <div id="pingHistory" class="history"></div>
+
+            <button id="boostBtn" class="btn-boost">
+                START BOOST
+                <span class="btn-sub">شروع بوست</span>
+            </button>
+            <button id="openGameBtn" class="btn-full" style="display:none;margin-top:10px;background:linear-gradient(135deg,#34d399,#05966d);">🎮 باز کردن بازی</button>
+        </div>
+
+        <div class="section-title">
+            <h2>GAMES</h2>
+            <span>TAP TO SELECT</span>
+        </div>
+        <div id="gamesGrid" class="game-grid"></div>
+        <button id="moreGamesBtn" class="btn-more">⌄</button>
+
+        <div class="section-title">
+            <h2>SERVERS</h2>
+            <span>AUTO + MANUAL</span>
+        </div>
+        <div class="server-tabs">
+            <button class="server-tab active" onclick="switchServerTab('auto', this)">اتوماتیک</button>
+            <button class="server-tab" onclick="switchServerTab('manual', this)">دستی</button>
+        </div>
+        <div id="serverList"></div>
+        <button id="refreshServers" class="btn-full">REFRESH SERVERS</button>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="profile" class="page">
+        <div class="card">
+            <div class="section-title" style="margin-top:0;">
+                <h2>PROFILE</h2>
+                <span>DEMO</span>
+            </div>
+            <label class="label">USERNAME</label>
+            <input id="username" class="input" placeholder="e.g. NovaPro">
+            <label class="label">EMAIL</label>
+            <input id="email" class="input" placeholder="example@gmail.com">
+            <button id="saveProfile" class="btn-full">SAVE PROFILE</button>
+        </div>
+
+        <div class="card">
+            <div class="section-title" style="margin-top:0;">
+                <h2>PREMIUM</h2>
+            </div>
+            <div class="plans">
+                <div class="plan"><b>1 MONTH</b><span>یک ماهه</span><div style="margin-top:8px;color:#34d399;font-size:13px;font-weight:700;">۴۹٬۰۰۰ تومان</div></div>
+                <div class="plan"><b>3 MONTHS</b><span>سه ماهه</span><div style="margin-top:8px;color:#34d399;font-size:13px;font-weight:700;">۱۲۹٬۰۰۰ تومان</div></div>
+                <div class="plan"><b>6 MONTHS</b><span>شش ماهه</span><div style="margin-top:8px;color:#34d399;font-size:13px;font-weight:700;">۲۲۹٬۰۰۰ تومان</div></div>
+                <div class="plan"><b>12 MONTHS</b><span>دوازده ماهه</span><div style="margin-top:8px;color:#34d399;font-size:13px;font-weight:700;">۳۹۹٬۰۰۰ تومان</div></div>
+            </div>
+            <div id="premiumStatus" style="display:none;padding:14px;border-radius:12px;margin-top:14px;text-align:center;"></div>
+            <button id="buyBtn" class="btn-full" style="margin-top:14px;">خرید اشتراک</button>
+        </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="settings" class="page">
+        <div class="card">
+            <div class="section-title" style="margin-top:0;">
+                <h2>تنظیمات</h2>
+                <span>اپ</span>
+            </div>
+            <div class="settings-row">
+                <span>تم اپ</span>
+                <div class="theme-btns">
+                    <button class="theme-btn active" data-theme="neon">نئون ترکیبی</button>
+                    <button class="theme-btn" data-theme="white">روشن</button>
+                </div>
+            </div>
+            <div class="settings-row">
+                <span>اعلان بروزرسانی</span>
+                <input type="checkbox" id="notifySwitch" class="switch">
+            </div>
+            <div class="settings-row">
+                <span>پشتیبانی</span>
+                <b>support@nova.local</b>
+            </div>
+            <div class="settings-row" id="appModeRow">
+                <span>حالت اپ</span>
+                <b id="appModeValue">...</b>
+            </div>
+            <script>
+            document.addEventListener('DOMContentLoaded', function(){
+              var el = document.getElementById('appModeValue');
+              if (!el) return;
+              if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BoostCore) {
+                el.innerHTML = '📱 APK واقعی (پلاگین فعال ✅)';
+                el.style.color = '#34d399';
+              } else if (window.Capacitor) {
+                el.innerHTML = '📱 APK (پلاگین غیرفعال ❌)';
+                el.style.color = '#f87171';
+              } else {
+                el.innerHTML = '🌐 نسخه وب';
+                el.style.color = '#60a5fa';
+              }
+            });
+            </script>
+            <div class="settings-row">
+                <span>نسخه</span>
+                <b>4.0.0</b>
+            </div>
+        </div>
+
+        <div class="card">
+            <p class="muted">نوا — رادار هولوگرافیک، طراحی مینیمال، بدون صدا.</p>
+        </div>
+
+        <div class="settings-row" style="margin-top:20px;">
+            <button onclick="novaLogout()" style="width:100%;padding:14px;background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:10px;color:white;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                خروج از حساب کاربری
+            </button>
+        </div>
+
+        <div class="settings-row" style="border-bottom:none;">
+            <button id="clearAppDataBtn" style="width:100%;padding:14px;background:rgba(139,147,167,.12);border:1px solid rgba(139,147,167,.3);border-radius:10px;color:#8b93a7;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🧹 پاک کردن حافظه اپ</button>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function(){
+          var b=document.getElementById('clearAppDataBtn');
+          if(b) b.onclick=function(){
+            if(!confirm('حافظه اپ پاک شود؟ از حساب خارج می‌شوی.')) return;
+            localStorage.clear();
+            if('caches' in window){ caches.keys().then(function(ks){ ks.forEach(function(k){ caches.delete(k); }); }); }
+            if(navigator.serviceWorker){ navigator.serviceWorker.getRegistrations().then(function(rs){ rs.forEach(function(r){ r.unregister(); }); }); }
+            location.href='auth.html';
+          };
+        });
+        </script>
+
+        <div class="settings-row" style="border-bottom:none;margin-top:15px;">
+            <button id="debugGamesBtn" style="width:100%;padding:14px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:10px;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🔍 نمایش همه اپ‌های نصب‌شده (دیباگ)</button>
+        </div>
+        <div id="debugGamesList" style="display:none;margin-top:10px;padding:15px;background:rgba(0,0,0,.5);border-radius:10px;max-height:400px;overflow-y:auto;font-family:monospace;font-size:12px;color:#fff;"></div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function(){
+          var b=document.getElementById('debugGamesBtn');
+          var list=document.getElementById('debugGamesList');
+          if(b) b.onclick=async function(){
+            list.style.display='block';
+            list.innerHTML='⏳ در حال گرفتن لیست...';
+            if(!window.Capacitor || !Capacitor.Plugins || !Capacitor.Plugins.BoostCore) {
+              list.innerHTML='❌ فقط در APK کار می‌کند';
+              return;
+            }
+            try {
+              var res = await Capacitor.Plugins.BoostCore.listInstalledGames();
+              var games = res.games || [];
+              var html = '<b>✅ ' + games.length + ' اپ نصب‌شده:</b><br><br>';
+              games.forEach(function(g){
+                html += '<div style="margin-bottom:6px;padding:6px;background:rgba(255,255,255,.1);border-radius:6px;">';
+                html += '<b style="color:#34d399;">' + g.name + '</b><br>';
+                html += '<span style="color:#60a5fa;font-size:11px;">' + g.pkg + '</span></div>';
+              });
+              list.innerHTML = html;
+            } catch(e) { list.innerHTML = '❌ خطا: ' + e.message; }
+          };
+        });
+        </script>
+    </section>
+</main>
+
+<nav class="bottom-nav">
+    <button class="nav-btn active" onclick="showPage('home', this)">HOME</button>
+    <button class="nav-btn" onclick="showPage('profile', this)">PROFILE</button>
+    <button class="nav-btn" onclick="showPage('settings', this)">SETTINGS</button>
+</nav>
+
+<div id="toast"></div>
+
+<script src="js/games.js?v=1789360000"></script>
+<script src="js/app.js?v=1789360000"></script>
+<script src="js/pay.js?v=1789360000"></script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js?v=1789360000')
+            .then(reg => console.log('SW registered'))
+            .catch(err => console.log('SW registration failed'));
     }
-    </style>
+</script>
+
+<script type="module">
+import { initSupabase, getCurrentUser, isLoggedIn } from './js/auth.js';
+await initSupabase();
+const user = getCurrentUser();
+if (user && user.email === 'yazdanabdi1372@gmail.com') {
+    const settingsPage = document.getElementById('settings');
+    if (settingsPage && !document.getElementById('adminLink')) {
+        const adminCard = document.createElement('div');
+        adminCard.className = 'card';
+        adminCard.style.marginTop = '15px';
+        adminCard.style.border = '1px solid rgba(234,179,8,0.3)';
+        adminCard.style.background = 'rgba(234,179,8,0.05)';
+        adminCard.innerHTML = `
+            <div class="section-title" style="margin-top:0;">
+                <h2>🛡️ پنل مدیریت</h2>
+                <span>ADMIN</span>
+            </div>
+            <a href="admin.html" id="adminLink" style="display:block;padding:14px;background:linear-gradient(135deg,#eab308,#f59e0b);border-radius:10px;color:white;text-align:center;text-decoration:none;font-weight:700;font-size:14px;">مدیریت کاربران</a>
+        `;
+        settingsPage.appendChild(adminCard);
+    }
+}
+</script>
+
+<script type="module">
+import { initSupabase, saveProfileData } from './js/auth.js';
+await initSupabase().catch(()=>{});
+document.addEventListener('click', async (e)=>{
+  const btn = e.target.closest('#saveProfile');
+  if(!btn) return;
+  const u = document.getElementById('username');
+  const em = document.getElementById('email');
+  const t = document.getElementById('toast');
+  try{
+    await saveProfileData((u ? u.value : '').trim(), (em ? em.value : '').trim());
+    if(t){ t.textContent='✅ اطلاعات ذخیره شد'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+  }catch(err){
+    if(t){ t.textContent='خطا در ذخیره: '+err.message; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+  }
+});
+</script>
+
+<div id="paymentModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;padding:16px;overflow-y:auto;">
+  <div style="max-width:430px;margin:16px auto;background:#0f1420;border-radius:18px;padding:22px;border:1px solid #1e293b;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h3 style="color:#fff;margin:0;font-size:17px;">💳 خرید اشتراک NOVA</h3>
+      <button onclick="document.getElementById('paymentModal').style.display='none'" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">×</button>
+    </div>
+    <div style="background:linear-gradient(135deg,rgba(251,191,36,.15),rgba(239,68,68,.15));border:1px solid #fbbf24;border-radius:10px;padding:10px;margin-bottom:14px;color:#fbbf24;font-size:12px;font-weight:700;text-align:center;line-height:1.8;">
+      ⚠️ پرداخت به صورت کارت‌به‌کارت انجام می‌شود<br>مراحل ۱ تا ۳ را به ترتیب انجام دهید
+    </div>
+    <div id="paymentStatus" style="display:none;padding:12px;border-radius:10px;margin-bottom:12px;"></div>
+    <div style="background:rgba(59,130,246,.08);border:1px solid #3b82f6;border-radius:12px;padding:12px;margin-bottom:10px;">
+      <div style="color:#60a5fa;font-size:12px;font-weight:700;margin-bottom:6px;">مرحله ۱ — پلن و مبلغ</div>
+      <div style="color:#fff;font-size:14px;">پلن: <b id="selectedPlanDisplay"></b></div>
+      <div style="color:#34d399;font-size:18px;font-weight:700;margin-top:4px;" id="selectedAmountDisplay"></div>
+    </div>
+    <div style="background:rgba(52,211,153,.08);border:1px solid #34d399;border-radius:12px;padding:12px;margin-bottom:10px;">
+      <div style="color:#34d399;font-size:12px;font-weight:700;margin-bottom:8px;">مرحله ۲ — واریز به این کارت (در اپ بانک خودتان)</div>
+      <div style="background:rgba(0,0,0,.35);padding:10px;border-radius:8px;text-align:center;margin-bottom:8px;">
+        <div style="color:#fff;font-family:monospace;font-size:18px;letter-spacing:2px;font-weight:700;" id="cardNumber">6104331100536805</div>
+        <div style="color:#94a3b8;font-size:11px;margin-top:6px;">به نام: <span id="cardHolder">یزدان عبدی</span></div>
+      </div>
+      <button id="copyCardBtn" style="width:100%;padding:9px;background:#3b82f6;border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;">📋 کپی شماره کارت</button>
+    </div>
+    <div style="background:rgba(168,85,247,.08);border:1px solid #a855f7;border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="color:#c4b5fd;font-size:12px;font-weight:700;margin-bottom:6px;">مرحله ۳ — کد پیگیری تراکنش را وارد کنید</div>
+      <div style="color:#94a3b8;font-size:11px;line-height:1.8;margin-bottom:8px;">پس از واریز، اپ بانک کدی به نام «کد پیگیری» می‌دهد. آن را اینجا وارد کنید تا ادمین واریز شما را تأیید کند:</div>
+      <input id="traceInput" type="text" maxlength="30" placeholder="مثال: 123456789012" style="width:100%;padding:12px;background:#0a0e1a;border:1px solid #1e293b;border-radius:8px;color:#fff;font-size:15px;box-sizing:border-box;">
+    </div>
+    <button id="submitPaymentBtn" style="width:100%;padding:14px;background:linear-gradient(135deg,#34d399,#05966d);border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">✅ ثبت کد پیگیری و ارسال درخواست</button>
+    <div style="color:#64748b;font-size:11px;margin-top:12px;line-height:1.8;text-align:center;">پس از ثبت، ادمین فوراً در تلگرام مطلع می‌شود و<br>معمولاً کمتر از ۱ ساعت اشتراک شما فعال می‌شود</div>
+  </div>
+</div>
 </body>
 </html>
