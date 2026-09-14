@@ -108,3 +108,50 @@ async function loadNotifications() {
 window.openBuyModal = openBuyModal;
 window.checkPremium = checkPremium;
 window.loadNotifications = loadNotifications;
+
+// ===== NOVA GOLDEN 4: smart ping colors + flags + ambient glow =====
+(function(){
+  var FLAGS = {'Iran':'🇮🇷','Turkey':'🇹🇷','Germany':'🇩🇪','UAE':'🇦🇪','Singapore':'🇸🇬'};
+  function pingColor(v){ return v < 60 ? '#34d399' : (v < 120 ? '#fbbf24' : '#f87171'); }
+  function tick(){
+    try {
+      var pv = document.getElementById('pingValue');
+      if (pv && pv.textContent.trim() !== '--') {
+        var v = parseInt(pv.textContent, 10);
+        if (!isNaN(v)) {
+          var c = pingColor(v);
+          pv.style.color = c;
+          pv.style.textShadow = '0 0 16px ' + c;
+        }
+      }
+      var sl = document.getElementById('serverList');
+      if (sl) {
+        var leaves = sl.querySelectorAll('*');
+        for (var i = 0; i < leaves.length; i++) {
+          var el = leaves[i];
+          if (el.children.length) continue;
+          var t = (el.textContent || '').trim();
+          var m = t.match(/^ms\s*([\d,]+)$/i);
+          if (m) {
+            var vv = parseInt(m[1].replace(/,/g, ''), 10);
+            var cc = pingColor(vv);
+            el.style.color = cc;
+            el.style.borderColor = cc;
+            el.style.boxShadow = '0 0 12px ' + cc + '44';
+            continue;
+          }
+          if (!el.dataset.novaflag) {
+            for (var k in FLAGS) {
+              if (t.indexOf(k) === 0) { el.textContent = FLAGS[k] + ' ' + t; el.dataset.novaflag = '1'; break; }
+            }
+          }
+        }
+      }
+      var bb = document.getElementById('boostBtn');
+      var on = !!bb && (/STOP/i.test(bb.textContent) || bb.classList.contains('active') || bb.classList.contains('boosting'));
+      document.body.classList.toggle('nova-boosting', on);
+    } catch(e){}
+  }
+  setInterval(tick, 1200);
+  document.addEventListener('DOMContentLoaded', tick);
+})();

@@ -1198,3 +1198,32 @@ h1, h2, .boost-title {
     box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
     outline: none;
 }
+
+/* ===== NOVA GOLDEN 4 ===== */
+.plan { position: relative; }
+.plan-daily { margin-top: 6px; color: #8b93a7; font-size: 11px; font-weight: 600; }
+.plan-featured {
+  border: 1px solid rgba(234, 179, 8, 0.55) !important;
+  background: linear-gradient(160deg, rgba(234, 179, 8, 0.10), rgba(255, 255, 255, 0.04)) !important;
+  box-shadow: 0 0 22px rgba(234, 179, 8, 0.18);
+}
+.plan-badge {
+  position: absolute; top: -12px; right: 50%; transform: translateX(50%);
+  background: linear-gradient(135deg, #f59e0b, #eab308);
+  color: #111; font-size: 10px; font-weight: 800;
+  padding: 3px 10px; border-radius: 20px;
+  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.4);
+  white-space: nowrap;
+}
+#boostCard { position: relative; }
+body.nova-boosting #boostCard {
+  box-shadow: 0 0 34px rgba(52, 211, 153, 0.28), 0 0 80px rgba(52, 211, 153, 0.12), 0 10px 32px rgba(0, 0, 0, 0.35) !important;
+  border-color: rgba(52, 211, 153, 0.55) !important;
+}
+body.nova-boosting .boost-title { color: #34d399 !important; text-shadow: 0 0 14px rgba(52, 211, 153, 0.5); }
+@keyframes novaBreath { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+body.nova-boosting #boostCard::after {
+  content: ''; position: absolute; inset: -2px; border-radius: inherit; pointer-events: none;
+  box-shadow: 0 0 60px rgba(52, 211, 153, 0.25) inset;
+  animation: novaBreath 2.4s ease-in-out infinite;
+}
