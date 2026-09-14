@@ -156,16 +156,17 @@ window.loadNotifications = loadNotifications;
 
 
 
-// ===== NOVA FLAGS: موج واقعی داخل پرچم =====
+
+// ===== NOVA FLAGS: پرچم پارچه‌ای با موج داخلی =====
 (function(){
   var FLAGS = [
-    ['Iran', '🇮🇷'],
-    ['Turkey', '🇹🇷'],
-    ['Germany', '🇩🇪'],
-    ['UAE', '🇦🇪'],
-    ['Singapore', '🇸🇬']
+    ['Iran', 'iran'],
+    ['Turkey', 'turkey'],
+    ['Germany', 'germany'],
+    ['UAE', 'uae'],
+    ['Singapore', 'singapore']
   ];
-  var delay = 0;
+  var base = 0;
   function decorate(){
     var sl = document.getElementById('serverList');
     if (!sl) return;
@@ -179,8 +180,13 @@ window.loadNotifications = loadNotifications;
         if (t.indexOf(FLAGS[f][0]) === 0) {
           el.dataset.novaflag = '1';
           var rest = t.slice(FLAGS[f][0].length).trim();
-          var d = (delay++ % 5) * 0.25;
-          el.innerHTML = '<span class="nova-flag" style="animation-delay:' + d + 's">' + FLAGS[f][1] + '</span> ' + rest;
+          var html = '<span class="nova-flag flag-' + FLAGS[f][1] + '">';
+          var d0 = (base++ % 5) * 0.2;
+          for (var s = 0; s < 6; s++) {
+            html += '<i style="animation-delay:' + (d0 + s * 0.14).toFixed(2) + 's"></i>';
+          }
+          html += '</span> ';
+          el.innerHTML = html + rest;
           break;
         }
       }
