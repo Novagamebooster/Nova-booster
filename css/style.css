@@ -1198,3 +1198,6 @@ h1, h2, .boost-title {
     box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
     outline: none;
 }
+
+/* تست موقت: حاشیه قرمز برای دیدن CSS */
+.card { border: 3px solid red !important; }
