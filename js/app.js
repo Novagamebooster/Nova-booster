@@ -80,7 +80,7 @@ function updateSelectedGameName() {
 
 const servers = [
     { name: "Turkey - Istanbul", host: "www.hurriyet.com.tr", port: 443, auto: true, ping: null, angle: 320, dist: 65, country: "Turkey", wireguard: null },
-    { name: "Europe - Frankfurt", host: "www.t-online.de", port: 443, auto: true, ping: null, angle: 290, dist: 90, country: "Germany", wireguard: null },
+    { name: "Germany - Frankfurt", host: "www.t-online.de", port: 443, auto: true, ping: null, angle: 290, dist: 90, country: "Germany", wireguard: null },
     { name: "UAE - Dubai", host: "www.etisalat.ae", port: 443, auto: true, ping: null, angle: 160, dist: 55, country: "UAE", wireguard: null }
 ];
 
