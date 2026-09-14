@@ -370,7 +370,12 @@ function loadProfile() {
 
 function initApp() {
     // render همه بازی‌ها در پس‌زمینه (زیر splash)
+        state.showAllGames = true;
         renderGames();
+        setTimeout(function(){
+            var cards = document.querySelectorAll("#gamesGrid > *");
+            for (var i = 4; i < cards.length; i++) cards[i].classList.add("nova-game-hidden");
+        }, 80);
         // مخفی کردن بازی‌های اضافی با کلاس (نه رندر مجدد بعدی)
         setTimeout(() => {
             const cards = document.querySelectorAll('#gamesGrid > *');
@@ -475,3 +480,21 @@ function initApp() {
 document.addEventListener("DOMContentLoaded", initApp);
 window.addEventListener("online", updateStatus);
 window.addEventListener("offline", updateStatus);
+
+
+// ===== NOVA: فلش بازی‌ها — فقط toggle کلاس، بدون رندر، بدون چشمک =====
+document.addEventListener('DOMContentLoaded', function(){
+    var btn = document.getElementById('moreGamesBtn');
+    if (!btn) return;
+    btn.onclick = function(){
+        var cards = document.querySelectorAll('#gamesGrid > *');
+        var extras = [];
+        for (var i = 4; i < cards.length; i++) extras.push(cards[i]);
+        if (!extras.length) return;
+        var hidden = extras[0].classList.contains('nova-game-hidden');
+        extras.forEach(function(card){
+            card.classList.toggle('nova-game-hidden', !hidden);
+        });
+        btn.innerHTML = hidden ? '⌃' : '⌄';
+    };
+});
