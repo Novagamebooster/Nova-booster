@@ -1261,3 +1261,6 @@ body.nova-boosting #boostCard::after {
 #home > .card:first-of-type {
     animation: novaRise .5s ease both, novaNeonPulse 3.2s ease-in-out infinite !important;
 }
+
+/* ===== NOVA: همه بازی‌ها از اول نمایش داده می‌شن ===== */
+#moreGamesBtn { display: none !important; }

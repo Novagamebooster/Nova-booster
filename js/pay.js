@@ -156,3 +156,20 @@ window.loadNotifications = loadNotifications;
   document.addEventListener('DOMContentLoaded', tick);
 })();
 
+
+// ===== NOVA: همه بازی‌ها از اول، بدون هیچ چشمک =====
+(function(){
+  function expandOnce(){
+    var btn = document.getElementById('moreGamesBtn');
+    if (!btn || btn.dataset.novaDone) return;
+    btn.dataset.novaDone = '1';
+    // یک بار کلیک می‌کنیم تا همه بازی‌ها رندر بشن
+    // (این اتفاق زیر Splash Screen می‌افته، پس چشمکش دیده نمی‌شه)
+    btn.click();
+    // بعد از اون، دکمه رو قفل می‌کنیم تا دیگه هیچ رندری اتفاق نیفته
+    btn.onclick = function(e){ e.preventDefault(); e.stopImmediatePropagation(); };
+  }
+  function start(){ setTimeout(expandOnce, 400); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
