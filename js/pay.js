@@ -158,20 +158,27 @@ window.loadNotifications = loadNotifications;
 
 
 
-// ===== NOVA FLAGS: پرچم واقعی با موج باد =====
+
+// ===== NOVA FLAGS: پرچم ایموجی + موج باد واقعی داخل پرچم =====
 (function(){
+  // تزریق فیلتر باد SVG (یک‌بار)
+  if (!document.getElementById('novaWindSvg')) {
+    document.body.insertAdjacentHTML('afterbegin',
+      '<svg id="novaWindSvg" width="0" height="0" style="position:absolute">' +
+      '<filter id="novaWind" x="-30%" y="-30%" width="160%" height="160%">' +
+      '<feTurbulence type="fractalNoise" baseFrequency="0.02 0.09" numOctaves="2" seed="7" result="w">' +
+      '<animate attributeName="baseFrequency" values="0.02 0.09;0.028 0.13;0.02 0.09" dur="3s" repeatCount="indefinite"/>' +
+      '</feTurbulence>' +
+      '<feDisplacementMap in="SourceGraphic" in2="w" scale="2.2" xChannelSelector="R" yChannelSelector="G"/>' +
+      '</filter></svg>');
+  }
   var FLAGS = [
-    ['Iran', 'iran', 'ir'],
-    ['Turkey', 'turkey', 'tr'],
-    ['Germany', 'germany', 'de'],
-    ['UAE', 'uae', 'ae'],
-    ['Singapore', 'singapore', 'sg']
+    ['Iran', '🇮🇷'],
+    ['Turkey', '🇹🇷'],
+    ['Germany', '🇩🇪'],
+    ['UAE', '🇦🇪'],
+    ['Singapore', '🇸🇬']
   ];
-  // پیش‌لود کردن عکس پرچم‌ها (بدون چشمک)
-  FLAGS.forEach(function(f){
-    var im = new Image();
-    im.src = 'https://flagcdn.com/w40/' + f[2] + '.png';
-  });
   var base = 0;
   function decorate(){
     var sl = document.getElementById('serverList');
@@ -186,13 +193,8 @@ window.loadNotifications = loadNotifications;
         if (t.indexOf(FLAGS[f][0]) === 0) {
           el.dataset.novaflag = '1';
           var rest = t.slice(FLAGS[f][0].length).trim();
-          var html = '<span class="nova-flag flag-' + FLAGS[f][1] + '">';
-          var d0 = (base++ % 5) * 0.2;
-          for (var s = 0; s < 6; s++) {
-            html += '<i style="animation-delay:' + (d0 + s * 0.14).toFixed(2) + 's"></i>';
-          }
-          html += '</span> ';
-          el.innerHTML = html + rest;
+          var d = (base++ % 5) * 0.3;
+          el.innerHTML = '<span class="nova-flag" style="animation-delay:' + d + 's">' + FLAGS[f][1] + '</span> ' + rest;
           break;
         }
       }
