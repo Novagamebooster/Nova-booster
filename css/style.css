@@ -1100,3 +1100,6 @@ body, button, input, textarea, select { font-family: 'Vazirmatn', 'Vazir', 'Sego
 
 /* مخفی‌سازی امن بدون حذف HTML */
 #debugGamesBtn, #debugGamesList, #debugBtn, #debugList, #appModeRow { display:none !important; }
+
+/* مخفی‌سازی امن بدون حذف HTML */
+#debugGamesBtn, #debugGamesList, #debugBtn, #debugList, #appModeRow { display:none !important; }
