@@ -1103,3 +1103,98 @@ body, button, input, textarea, select { font-family: 'Vazirmatn', 'Vazir', 'Sego
 
 /* مخفی‌سازی امن بدون حذف HTML */
 #debugGamesBtn, #debugGamesList, #debugBtn, #debugList, #appModeRow { display:none !important; }
+
+/* ============================================ */
+/* ========= NOVA PRO UI ENHANCEMENTS ========= */
+/* ============================================ */
+
+/* فونت وزیرمتن برای متن فارسی */
+body, button, input, textarea, select {
+    font-family: 'Vazirmatn', 'Vazir', 'Segoe UI', Tahoma, sans-serif !important;
+}
+
+/* انیمیشن ورود نرم برای کارت‌ها */
+@keyframes novaRise {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: none; }
+}
+.card { animation: novaRise .5s ease both; }
+.card:nth-of-type(2) { animation-delay: .08s; }
+.card:nth-of-type(3) { animation-delay: .16s; }
+
+/* کارت‌های شیشه‌ای (Glassmorphism) */
+.card {
+    background: rgba(255, 255, 255, 0.04) !important;
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+}
+
+/* نئون متحرک دور کارت BOOST */
+@keyframes novaNeonPulse {
+    0%, 100% {
+        box-shadow: 0 0 18px rgba(34, 211, 238, 0.22),
+                    0 0 44px rgba(168, 85, 247, 0.14),
+                    0 10px 32px rgba(0, 0, 0, 0.35);
+        border-color: rgba(34, 211, 238, 0.45) !important;
+    }
+    50% {
+        box-shadow: 0 0 32px rgba(168, 85, 247, 0.32),
+                    0 0 64px rgba(45, 212, 191, 0.18),
+                    0 10px 32px rgba(0, 0, 0, 0.35);
+        border-color: rgba(168, 85, 247, 0.55) !important;
+    }
+}
+#home .card:first-of-type {
+    animation: novaRise .5s ease both, novaNeonPulse 3.2s ease-in-out infinite;
+}
+
+/* پلن‌های شیشه‌ای */
+.plan {
+    background: rgba(255, 255, 255, 0.04) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    animation: novaRise .5s ease both;
+}
+.plan:nth-child(1) { animation-delay: .05s; }
+.plan:nth-child(2) { animation-delay: .1s; }
+.plan:nth-child(3) { animation-delay: .15s; }
+.plan:nth-child(4) { animation-delay: .2s; }
+.plan:active { transform: scale(0.97); }
+.plan.active {
+    border-color: rgba(34, 211, 238, 0.65) !important;
+    box-shadow: 0 0 24px rgba(34, 211, 238, 0.3);
+}
+
+/* دکمه‌های لمسی */
+.btn-full, #buyBtn, #boostBtn, .btn-boost {
+    transition: transform .15s ease, filter .15s ease;
+}
+.btn-full:active, #buyBtn:active, #boostBtn:active, .btn-boost:active {
+    transform: scale(0.97);
+    filter: brightness(1.15);
+}
+
+/* اسکرول‌بار مخفی (تمیزتر) */
+::-webkit-scrollbar { width: 0; height: 0; }
+* { scrollbar-width: none; }
+
+/* افکت نئون روی عنوان‌ها */
+h1, h2, .boost-title {
+    text-shadow: 0 0 12px rgba(34, 211, 238, 0.25);
+}
+
+/* بهبود input ها */
+.input, input[type="text"], input[type="email"] {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+.input:focus, input:focus {
+    border-color: rgba(34, 211, 238, 0.5) !important;
+    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
+    outline: none;
+}
