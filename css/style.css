@@ -1228,18 +1228,6 @@ body.nova-boosting #boostCard::after {
   animation: novaBreath 2.4s ease-in-out infinite;
 }
 
-/* ===== FIX: کاملاً بدون چشمک برای بازی‌ها ===== */
-.game-card,
-.game-grid .card,
-.game-grid > div,
-#gamesGrid .card,
-#gamesGrid > div {
-  animation: none !important;
-  transition: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
 /* فقط کارت‌های اصلی صفحه (نه بازی‌ها) انیمیشن دارن */
 .page > .card:not(.game-card):not(#gamesGrid .card) {
   animation: novaRise .5s ease both !important;
@@ -1250,14 +1238,26 @@ body.nova-boosting #boostCard::after {
   animation: novaRise .5s ease both, novaNeonPulse 3.2s ease-in-out infinite !important;
 }
 
-/* ===== FIX: بستن لیست بازی بدون رندر مجدد ===== */
-#gamesGrid.nova-collapsed > *:nth-child(n+5) { display: none !important; }
-#gamesGrid.nova-collapsed .game-card:nth-child(n+5) { display: none !important; }
-
 /* ===== FIX: حذف چشمک بار اول رندر ===== */
-body.nova-anti-flicker * {
-    animation-duration: 0s !important;
-    animation-delay: 0s !important;
-    transition-duration: 0s !important;
-    transition-delay: 0s !important;
+
+
+/* ===== FIX قطعی: بازی‌ها هیچوقت انیمیشن ندارند ===== */
+#gamesGrid .card,
+#gamesGrid > *,
+.game-card,
+.game-grid .card,
+.game-grid > * {
+    animation: none !important;
+    animation-name: none !important;
+    transition: none !important;
+}
+
+/* فقط کارت‌های اصلی صفحه (نه بازی‌ها) انیمیشن ورود دارند */
+.page > .card:not(#gamesGrid *) {
+    animation: novaRise .5s ease both !important;
+}
+
+/* نئون فقط روی کارت اصلی BOOST */
+#home > .card:first-of-type {
+    animation: novaRise .5s ease both, novaNeonPulse 3.2s ease-in-out infinite !important;
 }
