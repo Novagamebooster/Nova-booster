@@ -157,19 +157,21 @@ window.loadNotifications = loadNotifications;
 })();
 
 
-// ===== NOVA: همه بازی‌ها از اول، بدون هیچ چشمک =====
+
+// ===== NOVA: warm-up عکس‌ها (حذف چشمک بار اول) =====
 (function(){
-  function expandOnce(){
+  function warm(){
     var btn = document.getElementById('moreGamesBtn');
-    if (!btn || btn.dataset.novaDone) return;
-    btn.dataset.novaDone = '1';
-    // یک بار کلیک می‌کنیم تا همه بازی‌ها رندر بشن
-    // (این اتفاق زیر Splash Screen می‌افته، پس چشمکش دیده نمی‌شه)
-    btn.click();
-    // بعد از اون، دکمه رو قفل می‌کنیم تا دیگه هیچ رندری اتفاق نیفته
-    btn.onclick = function(e){ e.preventDefault(); e.stopImmediatePropagation(); };
+    if (!btn || btn.dataset.novaWarm) return;
+    btn.dataset.novaWarm = '1';
+    try {
+      // دو کلیک پشت سر هم در یک لحظه:
+      // کلیک ۱ = رندر همه بازی‌ها (عکس‌ها لود و دیکد می‌شن)
+      // کلیک ۲ = برگشت به حالت عادی
+      // هر دو در یک ثانیه اتفاق می‌افتن → کاربر هیچ تغییری نمی‌بینه
+      btn.click();
+      btn.click();
+    } catch(e){}
   }
-  function start(){ setTimeout(expandOnce, 400); }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
-  else start();
+  setTimeout(warm, 1200);
 })();
