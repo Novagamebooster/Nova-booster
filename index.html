@@ -361,6 +361,7 @@
 import * as AUTH from './js/auth.js';
 await AUTH.initSupabase().catch(()=>{});
 
+// ===== لاگین UI =====
 function buildAuthUI(){
   if (document.getElementById('novaAuthOverlay')) return;
   const d = document.createElement('div');
@@ -388,13 +389,59 @@ async function doAuth(mode){
   try {
     if (mode === 'in') await AUTH.signIn(em, ps); else await AUTH.signUp(em, ps, em.split('@')[0]);
     msg.textContent = '✅ خوش اومدی!';
+    refreshCloudStatus(); injectAdminFab();
     setTimeout(hideAuth, 700);
   } catch (e) { msg.textContent = '❌ ' + (e.message || 'خطا'); }
 }
 window.NOVA_AUTH = Object.assign({}, AUTH, { showAuth, hideAuth });
 
+// ===== کارت ابری پروفایل =====
+function injectCloudCard(){
+  const btn = document.getElementById('saveProfile');
+  if (!btn || document.getElementById('novaCloudCard')) return;
+  const card = document.createElement('div');
+  card.id = 'novaCloudCard';
+  card.className = 'nova-cloud-card';
+  card.innerHTML = '<div class="nova-cloud-title">☁️ حساب ابری</div>' +
+    '<div id="novaCloudInfo" class="nova-cloud-info">در حال خواندن از سرور...</div>' +
+    '<button id="novaLogout" class="nova-auth-btn nova-auth-alt">خروج از حساب</button>';
+  btn.parentElement.insertBefore(card, btn.nextSibling);
+  document.getElementById('novaLogout').onclick = async () => {
+    await AUTH.signOut();
+    const f = document.getElementById('novaAdminFab'); if (f) f.remove();
+    refreshCloudStatus();
+  };
+}
+async function refreshCloudStatus(){
+  const info = document.getElementById('novaCloudInfo');
+  if (!info) return;
+  if (!AUTH.isLoggedIn()) { info.innerHTML = '❌ لاگین نیست — وارد شو یا ثبت‌نام کن'; return; }
+  const u = AUTH.getCurrentUser();
+  const p = await AUTH.getProfile().catch(() => null);
+  const exp = (p && p.plan_expires) ? new Date(p.plan_expires).toLocaleDateString('fa-IR') : '—';
+  const plan = (p && p.plan) ? p.plan : 'free';
+  const premium = p && p.plan_expires && new Date(p.plan_expires).getTime() > Date.now();
+  info.innerHTML = 'ایمیل: ' + (u.email || '—') + '<br>طرح: ' + plan +
+    (premium ? ' ✅ فعال تا ' + exp : ' (رایگان)') + '<br><span class="nova-cloud-ok">● متصل به سرور ابری</span>';
+}
 
-// ===== پنل ادمین NOVA =====
+// ===== پشتیبانی → تلگرام =====
+function bindSupport(){
+  document.querySelectorAll('*').forEach(el => {
+    if (el.children.length) return;
+    const t = (el.textContent || '').trim().toLowerCase();
+    if (t.includes('پشتیبانی') || t.includes('support')) {
+      const target = el.closest('a,button') || el;
+      target.style.cursor = 'pointer';
+      target.addEventListener('click', ev => {
+        ev.preventDefault(); ev.stopPropagation();
+        window.open('https://t.me/NovaBoosterSupport', '_blank');
+      }, true);
+    }
+  });
+}
+
+// ===== پنل ادمین حرفه‌ای =====
 let adminTab = 'stats';
 function faNum(n){ return Number(n || 0).toLocaleString('fa-IR'); }
 function faDate(s){ return s ? new Date(s).toLocaleDateString('fa-IR') : '—'; }
@@ -411,7 +458,8 @@ function buildAdminUI(){
   const d = document.createElement('div');
   d.id = 'novaAdminOverlay';
   d.innerHTML = '<div class="na-panel">' +
-    '<div class="na-head"><div class="na-title">👑 پنل مدیریت NOVA</div><button id="naClose" class="na-close">✕</button></div>' +
+    '<div class="na-head"><div class="na-title">👑 پنل مدیریت NOVA</div>' +
+    '<div style="display:flex;gap:6px"><button id="naRefresh" class="na-close">🔄</button><button id="naClose" class="na-close">✕</button></div></div>' +
     '<div class="na-tabs">' +
       '<button class="na-tab active" data-t="stats">📊 داشبورد</button>' +
       '<button class="na-tab" data-t="users">👥 کاربران</button>' +
@@ -422,6 +470,7 @@ function buildAdminUI(){
     '<div id="naBody" class="na-body"></div></div>';
   document.body.appendChild(d);
   d.querySelector('#naClose').onclick = closeAdmin;
+  d.querySelector('#naRefresh').onclick = renderAdmin;
   d.querySelectorAll('.na-tab').forEach(b => b.onclick = () => {
     d.querySelectorAll('.na-tab').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
@@ -464,6 +513,7 @@ async function renderAdmin(){
           '<div class="na-row-d">طرح: ' + (u.plan || 'free') + ' | انقضا: ' + faDate(u.plan_expires) + '</div>' +
           '<div class="na-acts">' +
           '<button class="na-btn" data-act="ext" data-id="' + u.id + '">+۱ ماه</button>' +
+          '<button class="na-btn" data-act="plan" data-id="' + u.id + '">طرح</button>' +
           (banned ? '<button class="na-btn green" data-act="unban" data-id="' + u.id + '">آزادسازی</button>'
                   : '<button class="na-btn red" data-act="ban" data-id="' + u.id + '">BAN</button>') +
           '<button class="na-btn red" data-act="del" data-id="' + u.id + '">حذف</button>' +
@@ -506,15 +556,17 @@ document.addEventListener('click', async (e) => {
     if (act === 'unban') await AUTH.unbanUser(id);
     if (act === 'del') { if (!confirm('کاربر برای همیشه حذف بشه؟')) return; await AUTH.deleteUserProfile(id); }
     if (act === 'ext') await AUTH.extendPlan(id, 1);
+    if (act === 'plan') { const v = prompt('نام طرح (مثل 1m / 3m / free):'); if (!v) return; await AUTH.changeUserPlan(id, v); }
     if (act === 'appr') await AUTH.approvePayment(id);
     if (act === 'rej') await AUTH.rejectPayment(id);
     renderAdmin();
   } catch (err) { alert('خطا: ' + err.message); }
 });
 function injectAdminFab(){
-  if (document.getElementById('novaAdminFab') || !AUTH.isLoggedIn()) return;
+  if (!AUTH.isLoggedIn()) return;
   AUTH.isAdmin().then(ok => {
-    if (!ok || document.getElementById('novaAdminFab')) return;
+    if (!ok) return;
+    if (document.getElementById('novaAdminFab')) return;
     const f = document.createElement('button');
     f.id = 'novaAdminFab'; f.textContent = '👑';
     f.onclick = openAdmin;
@@ -522,21 +574,7 @@ function injectAdminFab(){
   });
 }
 
-function bindSupport(){
-  document.querySelectorAll('*').forEach(el => {
-    if (el.children.length) return;
-    const t = (el.textContent || '').trim().toLowerCase();
-    if (t.includes('پشتیبانی') || t.includes('support')) {
-      const target = el.closest('a,button') || el;
-      target.style.cursor = 'pointer';
-      target.addEventListener('click', ev => {
-        ev.preventDefault(); ev.stopPropagation();
-        window.open('https://t.me/NovaBoosterSupport', '_blank');
-      }, true);
-    }
-  });
-}
-
+// ===== ذخیره پروفایل =====
 document.addEventListener('click', async (e) => {
   const btn = e.target.closest('#saveProfile');
   if (!btn) return;
@@ -551,7 +589,10 @@ document.addEventListener('click', async (e) => {
     if (t) { t.textContent = 'خطا در ذخیره: ' + err.message; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
   }
 });
-document.addEventListener('DOMContentLoaded', () => { buildAuthUI(); bindSupport(); });
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildAuthUI(); bindSupport(); injectCloudCard(); refreshCloudStatus(); injectAdminFab();
+});
 </script>
 
 <script type="module">

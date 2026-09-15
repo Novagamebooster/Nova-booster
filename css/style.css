@@ -1395,3 +1395,8 @@ body.nova-boosting #boostCard::after {
   border: none; font-size: 22px; cursor: pointer;
   box-shadow: 0 0 18px rgba(255,209,102,.5);
 }
+
+.nova-cloud-card { margin-top: 14px; background: rgba(0,229,255,.06); border: 1px solid rgba(0,229,255,.25); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.nova-cloud-title { color: #00e5ff; font-weight: 800; font-size: 14px; }
+.nova-cloud-info { color: #cfd8e3; font-size: 13px; line-height: 1.9; }
+.nova-cloud-ok { color: #4ade80; font-size: 12px; }
