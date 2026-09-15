@@ -116,7 +116,24 @@ async function saveProfileData(username, email) {
     return data;
 }
 
+
+async function isBanned() {
+    if (!currentUser) return false;
+    const { data } = await supabase.from('bans').select('id,reason').eq('user_id', currentUser.id);
+    return (data && data.length) ? (data[0].reason || 'تخلف') : false;
+}
+async function banUser(userId, reason) {
+    if (!(await isAdmin())) throw new Error('Not admin');
+    const { error } = await supabase.from('bans').insert({ user_id: userId, reason: reason || 'تخلف' });
+    if (error) throw error;
+}
+async function unbanUser(userId) {
+    if (!(await isAdmin())) throw new Error('Not admin');
+    const { error } = await supabase.from('bans').delete().eq('user_id', userId);
+    if (error) throw error;
+}
+
 function isLoggedIn() { return currentUser !== null; }
 function getCurrentUser() { return currentUser; }
 
-export { initSupabase, signUp, signIn, signOut, getProfile, updateProfile, isAdmin, getAllUsers, changeUserPlan, deleteUserProfile, isLoggedIn, getCurrentUser, saveProfileData };
+export { initSupabase, signUp, signIn, signOut, getProfile, updateProfile, isAdmin, getAllUsers, changeUserPlan, deleteUserProfile, isLoggedIn, getCurrentUser, saveProfileData, isBanned, banUser, unbanUser };

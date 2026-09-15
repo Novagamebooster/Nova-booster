@@ -358,27 +358,71 @@
 </script>
 
 <script type="module">
-import { initSupabase, getCurrentUser, isLoggedIn } from './js/auth.js';
-await initSupabase();
-const user = getCurrentUser();
-if (user && user.email === 'yazdanabdi1372@gmail.com') {
-    const settingsPage = document.getElementById('settings');
-    if (settingsPage && !document.getElementById('adminLink')) {
-        const adminCard = document.createElement('div');
-        adminCard.className = 'card';
-        adminCard.style.marginTop = '15px';
-        adminCard.style.border = '1px solid rgba(234,179,8,0.3)';
-        adminCard.style.background = 'rgba(234,179,8,0.05)';
-        adminCard.innerHTML = `
-            <div class="section-title" style="margin-top:0;">
-                <h2>🛡️ پنل مدیریت</h2>
-                <span>ADMIN</span>
-            </div>
-            <a href="admin.html" id="adminLink" style="display:block;padding:14px;background:linear-gradient(135deg,#eab308,#f59e0b);border-radius:10px;color:white;text-align:center;text-decoration:none;font-weight:700;font-size:14px;">مدیریت کاربران</a>
-        `;
-        settingsPage.appendChild(adminCard);
-    }
+import * as AUTH from './js/auth.js';
+await AUTH.initSupabase().catch(()=>{});
+
+function buildAuthUI(){
+  if (document.getElementById('novaAuthOverlay')) return;
+  const d = document.createElement('div');
+  d.id = 'novaAuthOverlay';
+  d.innerHTML = '<div class="nova-auth-card">' +
+    '<div class="nova-auth-title">☁️ حساب NOVA</div>' +
+    '<input id="novaAuthEmail" type="email" placeholder="ایمیل" dir="ltr">' +
+    '<input id="novaAuthPass" type="password" placeholder="رمز عبور (حداقل ۶ حرف)" dir="ltr">' +
+    '<button id="novaAuthLogin" class="nova-auth-btn">ورود</button>' +
+    '<button id="novaAuthSignup" class="nova-auth-btn nova-auth-alt">ثبت‌نام جدید</button>' +
+    '<div id="novaAuthMsg"></div>' +
+    '<button id="novaAuthClose" class="nova-auth-close">✕</button></div>';
+  document.body.appendChild(d);
+  d.querySelector('#novaAuthClose').onclick = hideAuth;
+  d.querySelector('#novaAuthLogin').onclick = () => doAuth('in');
+  d.querySelector('#novaAuthSignup').onclick = () => doAuth('up');
 }
+function showAuth(){ buildAuthUI(); document.getElementById('novaAuthOverlay').style.display = 'flex'; }
+function hideAuth(){ const o = document.getElementById('novaAuthOverlay'); if (o) o.style.display = 'none'; }
+async function doAuth(mode){
+  const em = document.getElementById('novaAuthEmail').value.trim();
+  const ps = document.getElementById('novaAuthPass').value;
+  const msg = document.getElementById('novaAuthMsg');
+  msg.textContent = '⏳ لطفاً صبر کن...';
+  try {
+    if (mode === 'in') await AUTH.signIn(em, ps); else await AUTH.signUp(em, ps, em.split('@')[0]);
+    msg.textContent = '✅ خوش اومدی!';
+    setTimeout(hideAuth, 700);
+  } catch (e) { msg.textContent = '❌ ' + (e.message || 'خطا'); }
+}
+window.NOVA_AUTH = Object.assign({}, AUTH, { showAuth, hideAuth });
+
+function bindSupport(){
+  document.querySelectorAll('*').forEach(el => {
+    if (el.children.length) return;
+    const t = (el.textContent || '').trim().toLowerCase();
+    if (t.includes('پشتیبانی') || t.includes('support')) {
+      const target = el.closest('a,button') || el;
+      target.style.cursor = 'pointer';
+      target.addEventListener('click', ev => {
+        ev.preventDefault(); ev.stopPropagation();
+        window.open('https://t.me/NovaBoosterSupport', '_blank');
+      }, true);
+    }
+  });
+}
+
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('#saveProfile');
+  if (!btn) return;
+  const u = document.getElementById('username');
+  const em = document.getElementById('email');
+  const t = document.getElementById('toast');
+  try {
+    if (!AUTH.isLoggedIn()) { showAuth(); throw new Error('اول وارد حساب شو ☁️'); }
+    await AUTH.saveProfileData((u ? u.value : '').trim(), (em ? em.value : '').trim());
+    if (t) { t.textContent = '✅ اطلاعات ذخیره شد'; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
+  } catch (err) {
+    if (t) { t.textContent = 'خطا در ذخیره: ' + err.message; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+  }
+});
+document.addEventListener('DOMContentLoaded', () => { buildAuthUI(); bindSupport(); });
 </script>
 
 <script type="module">
@@ -431,6 +475,5 @@ document.addEventListener('click', async (e)=>{
     <div style="color:#64748b;font-size:11px;margin-top:12px;line-height:1.8;text-align:center;">پس از ثبت، ادمین فوراً در تلگرام مطلع می‌شود و<br>معمولاً کمتر از ۱ ساعت اشتراک شما فعال می‌شود</div>
   </div>
 </div>
-<script src="js/cloud.js"></script>
 </body>
 </html>

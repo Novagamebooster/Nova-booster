@@ -409,9 +409,9 @@ function initApp() {
             toast("Best server found");
             if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BoostCore && Capacitor.Plugins.BoostCore.startVpn) {
                 try {
-                    var cs = await window.NOVA_CLOUD.status();
-                    if (!cs.logged) { window.NOVA_CLOUD.showAuth(); toast('اول وارد حساب NOVA شو! ☁️'); return; }
-                    if (cs.banned) { toast('⛔ حساب مسدود: ' + (cs.reason || 'تخلف')); return; }
+                    if (!window.NOVA_AUTH || !window.NOVA_AUTH.isLoggedIn()) { if (window.NOVA_AUTH) window.NOVA_AUTH.showAuth(); toast('اول وارد حساب NOVA شو! ☁️'); return; }
+                    var banR = await window.NOVA_AUTH.isBanned();
+                    if (banR) { toast('⛔ حساب مسدود: ' + banR); return; }
                     await Capacitor.Plugins.BoostCore.startVpn({ server: best.name });
                     toast('🛡️ سرور ' + best.name + ' فعال شد!');
                 } catch (e) {}
