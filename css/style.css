@@ -1277,3 +1277,48 @@ body.nova-boosting #boostCard::after {
   30%      { transform: rotate(-4deg); }
   65%      { transform: rotate(3deg); }
 }
+
+/* ===== NOVA AUTH: صفحه لاگین ابری ===== */
+#novaAuthOverlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,.75); backdrop-filter: blur(8px);
+  align-items: center; justify-content: center;
+}
+.nova-auth-card {
+  position: relative;
+  width: 85%; max-width: 360px;
+  background: rgba(15,20,35,.95);
+  border: 1px solid rgba(0,229,255,.35);
+  border-radius: 18px;
+  padding: 26px 22px;
+  box-shadow: 0 0 30px rgba(0,229,255,.25);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.nova-auth-title {
+  text-align: center; font-size: 18px; font-weight: 800;
+  color: #00e5ff; letter-spacing: 1px; margin-bottom: 6px;
+}
+.nova-auth-card input {
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #fff; font-size: 14px;
+  outline: none;
+}
+.nova-auth-card input:focus { border-color: #00e5ff; }
+.nova-auth-btn {
+  background: linear-gradient(90deg, #00c6ff, #7a5cff);
+  border: none; border-radius: 10px;
+  padding: 12px; color: #fff;
+  font-size: 15px; font-weight: 700;
+  cursor: pointer;
+}
+.nova-auth-alt { background: rgba(255,255,255,.1); }
+#novaAuthMsg { text-align: center; font-size: 13px; color: #ffd166; min-height: 18px; }
+.nova-auth-close {
+  position: absolute; top: 10px; left: 12px;
+  background: none; border: none;
+  color: #888; font-size: 16px; cursor: pointer;
+}
