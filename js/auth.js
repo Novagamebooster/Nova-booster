@@ -133,7 +133,57 @@ async function unbanUser(userId) {
     if (error) throw error;
 }
 
+
+async function getAllPayments() {
+    if (!(await isAdmin())) return [];
+    const { data } = await supabase.from('payments').select('*').order('created_at', { ascending: false });
+    return data || [];
+}
+async function getAllBans() {
+    if (!(await isAdmin())) return [];
+    const { data } = await supabase.from('bans').select('*').order('banned_at', { ascending: false });
+    return data || [];
+}
+async function getStats() {
+    if (!(await isAdmin())) return null;
+    const [u, p, b] = await Promise.all([
+        supabase.from('profiles').select('plan,plan_expires'),
+        supabase.from('payments').select('amount,status'),
+        supabase.from('bans').select('id')
+    ]);
+    const now = Date.now();
+    const active = (u.data || []).filter(x => x.plan_expires && new Date(x.plan_expires).getTime() > now).length;
+    const revenue = (p.data || []).filter(x => x.status === 'approved').reduce((s, x) => s + (x.amount || 0), 0);
+    const pending = (p.data || []).filter(x => x.status === 'pending').length;
+    return { users: (u.data || []).length, active, revenue, pending, bans: (b.data || []).length };
+}
+async function approvePayment(paymentId) {
+    if (!(await isAdmin())) throw new Error('Not admin');
+    const { data: pay } = await supabase.from('payments').select('*').eq('id', paymentId).single();
+    if (!pay) throw new Error('Payment not found');
+    const { data: prof } = await supabase.from('profiles').select('plan_expires').eq('id', pay.user_id).single();
+    const base = (prof && prof.plan_expires && new Date(prof.plan_expires) > new Date()) ? new Date(prof.plan_expires) : new Date();
+    const newExp = new Date(base.getTime() + (pay.plan_months || 1) * 30 * 24 * 3600 * 1000);
+    const { error: e1 } = await supabase.from('payments').update({ status: 'approved' }).eq('id', paymentId);
+    if (e1) throw e1;
+    const { error: e2 } = await supabase.from('profiles').update({ plan: pay.plan_months + 'm', plan_expires: newExp.toISOString() }).eq('id', pay.user_id);
+    if (e2) throw e2;
+}
+async function rejectPayment(paymentId) {
+    if (!(await isAdmin())) throw new Error('Not admin');
+    const { error } = await supabase.from('payments').update({ status: 'rejected' }).eq('id', paymentId);
+    if (error) throw error;
+}
+async function extendPlan(userId, months) {
+    if (!(await isAdmin())) throw new Error('Not admin');
+    const { data: prof } = await supabase.from('profiles').select('plan_expires').eq('id', userId).single();
+    const base = (prof && prof.plan_expires && new Date(prof.plan_expires) > new Date()) ? new Date(prof.plan_expires) : new Date();
+    const newExp = new Date(base.getTime() + months * 30 * 24 * 3600 * 1000);
+    const { error } = await supabase.from('profiles').update({ plan: 'premium', plan_expires: newExp.toISOString() }).eq('id', userId);
+    if (error) throw error;
+}
+
 function isLoggedIn() { return currentUser !== null; }
 function getCurrentUser() { return currentUser; }
 
-export { initSupabase, signUp, signIn, signOut, getProfile, updateProfile, isAdmin, getAllUsers, changeUserPlan, deleteUserProfile, isLoggedIn, getCurrentUser, saveProfileData, isBanned, banUser, unbanUser };
+export { initSupabase, signUp, signIn, signOut, getProfile, updateProfile, isAdmin, getAllUsers, changeUserPlan, deleteUserProfile, isLoggedIn, getCurrentUser, saveProfileData, isBanned, banUser, unbanUser, approvePayment, rejectPayment, getAllPayments, getAllBans, getStats, extendPlan };

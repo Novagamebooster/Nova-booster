@@ -393,6 +393,135 @@ async function doAuth(mode){
 }
 window.NOVA_AUTH = Object.assign({}, AUTH, { showAuth, hideAuth });
 
+
+// ===== پنل ادمین NOVA =====
+let adminTab = 'stats';
+function faNum(n){ return Number(n || 0).toLocaleString('fa-IR'); }
+function faDate(s){ return s ? new Date(s).toLocaleDateString('fa-IR') : '—'; }
+function toastMsg(m){ if (window.toast) toast(m); else alert(m); }
+async function openAdmin(){
+  if (!AUTH.isLoggedIn() || !(await AUTH.isAdmin())) { toastMsg('⛔ دسترسی مدیر ندارید!'); return; }
+  buildAdminUI();
+  document.getElementById('novaAdminOverlay').style.display = 'flex';
+  renderAdmin();
+}
+function closeAdmin(){ const o = document.getElementById('novaAdminOverlay'); if (o) o.style.display = 'none'; }
+function buildAdminUI(){
+  if (document.getElementById('novaAdminOverlay')) return;
+  const d = document.createElement('div');
+  d.id = 'novaAdminOverlay';
+  d.innerHTML = '<div class="na-panel">' +
+    '<div class="na-head"><div class="na-title">👑 پنل مدیریت NOVA</div><button id="naClose" class="na-close">✕</button></div>' +
+    '<div class="na-tabs">' +
+      '<button class="na-tab active" data-t="stats">📊 داشبورد</button>' +
+      '<button class="na-tab" data-t="users">👥 کاربران</button>' +
+      '<button class="na-tab" data-t="pays">💳 پرداخت‌ها</button>' +
+      '<button class="na-tab" data-t="bans">⛔ بن‌ها</button>' +
+    '</div>' +
+    '<input id="naSearch" class="na-search" placeholder="🔍 جستجوی یوزرنیم یا ایمیل..." style="display:none">' +
+    '<div id="naBody" class="na-body"></div></div>';
+  document.body.appendChild(d);
+  d.querySelector('#naClose').onclick = closeAdmin;
+  d.querySelectorAll('.na-tab').forEach(b => b.onclick = () => {
+    d.querySelectorAll('.na-tab').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    adminTab = b.dataset.t;
+    document.getElementById('naSearch').style.display = (adminTab === 'users') ? 'block' : 'none';
+    renderAdmin();
+  });
+  d.querySelector('#naSearch').oninput = renderAdmin;
+}
+async function renderAdmin(){
+  const body = document.getElementById('naBody');
+  if (!body) return;
+  body.innerHTML = '<div class="na-loading">⏳ در حال خواندن از سرور...</div>';
+  try {
+    if (adminTab === 'stats') {
+      const s = await AUTH.getStats();
+      body.innerHTML = '<div class="na-cards">' +
+        '<div class="na-card"><div class="na-c-num">' + faNum(s.users) + '</div><div class="na-c-lbl">کاربران</div></div>' +
+        '<div class="na-card green"><div class="na-c-num">' + faNum(s.active) + '</div><div class="na-c-lbl">اشتراک فعال</div></div>' +
+        '<div class="na-card gold"><div class="na-c-num">' + faNum(s.pending) + '</div><div class="na-c-lbl">در انتظار تأیید</div></div>' +
+        '<div class="na-card red"><div class="na-c-num">' + faNum(s.bans) + '</div><div class="na-c-lbl">مسدودها</div></div>' +
+        '</div>' +
+        '<div class="na-rev">💰 درآمد تأییدشده: <b>' + faNum(s.revenue) + '</b> تومان</div>';
+    }
+    if (adminTab === 'users') {
+      const q = (document.getElementById('naSearch').value || '').trim().toLowerCase();
+      let users = await AUTH.getAllUsers();
+      const bans = await AUTH.getAllBans();
+      const banIds = {};
+      bans.forEach(b => banIds[b.user_id] = true);
+      if (q) users = users.filter(u => (u.username || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q));
+      body.innerHTML = users.map(u => {
+        const active = u.plan_expires && new Date(u.plan_expires).getTime() > Date.now();
+        const banned = !!banIds[u.id];
+        return '<div class="na-row"><div class="na-row-main">' +
+          '<div class="na-row-t">' + (u.username || '—') + '</div>' +
+          '<div class="na-row-s">' + (u.email || '') + '</div></div>' +
+          '<div class="na-row-side">' +
+          '<span class="na-badge ' + (banned ? 'red' : (active ? 'green' : 'gray')) + '">' + (banned ? 'مسدود' : (active ? 'فعال' : 'رایگان')) + '</span>' +
+          '<div class="na-row-d">طرح: ' + (u.plan || 'free') + ' | انقضا: ' + faDate(u.plan_expires) + '</div>' +
+          '<div class="na-acts">' +
+          '<button class="na-btn" data-act="ext" data-id="' + u.id + '">+۱ ماه</button>' +
+          (banned ? '<button class="na-btn green" data-act="unban" data-id="' + u.id + '">آزادسازی</button>'
+                  : '<button class="na-btn red" data-act="ban" data-id="' + u.id + '">BAN</button>') +
+          '<button class="na-btn red" data-act="del" data-id="' + u.id + '">حذف</button>' +
+          '</div></div></div>';
+      }).join('') || '<div class="na-loading">کاربری نیست</div>';
+    }
+    if (adminTab === 'pays') {
+      const pays = await AUTH.getAllPayments();
+      body.innerHTML = pays.map(p =>
+        '<div class="na-row"><div class="na-row-main">' +
+        '<div class="na-row-t">' + (p.username || '—') + '</div>' +
+        '<div class="na-row-s">' + faNum(p.amount) + ' تومان | ' + p.plan_months + ' ماه | کد: ' + (p.trace_code || '—') + '</div></div>' +
+        '<div class="na-row-side">' +
+        '<span class="na-badge ' + (p.status === 'approved' ? 'green' : (p.status === 'pending' ? 'gold' : 'red')) + '">' +
+        (p.status === 'approved' ? 'تأیید شده' : (p.status === 'pending' ? 'در انتظار' : 'رد شده')) + '</span>' +
+        '<div class="na-row-d">' + faDate(p.created_at) + '</div>' +
+        (p.status === 'pending' ? '<div class="na-acts"><button class="na-btn green" data-act="appr" data-id="' + p.id + '">تأیید</button>' +
+        '<button class="na-btn red" data-act="rej" data-id="' + p.id + '">رد</button></div>' : '') +
+        '</div></div>'
+      ).join('') || '<div class="na-loading">پرداختی نیست</div>';
+    }
+    if (adminTab === 'bans') {
+      const bans = await AUTH.getAllBans();
+      body.innerHTML = bans.map(b =>
+        '<div class="na-row"><div class="na-row-main">' +
+        '<div class="na-row-t">' + (b.reason || 'تخلف') + '</div>' +
+        '<div class="na-row-s">' + b.user_id + '</div></div>' +
+        '<div class="na-row-side"><div class="na-row-d">' + faDate(b.banned_at) + '</div>' +
+        '<div class="na-acts"><button class="na-btn green" data-act="unban" data-id="' + b.user_id + '">آزادسازی</button></div></div></div>'
+      ).join('') || '<div class="na-loading">بنی وجود نداره 🎉</div>';
+    }
+  } catch (e) { body.innerHTML = '<div class="na-loading">❌ ' + e.message + '</div>'; }
+}
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-act]');
+  if (!btn || !btn.closest('#novaAdminOverlay')) return;
+  const act = btn.dataset.act, id = btn.dataset.id;
+  try {
+    if (act === 'ban') { const r = prompt('دلیل مسدودسازی:'); if (r === null) return; await AUTH.banUser(id, r || 'تخلف'); }
+    if (act === 'unban') await AUTH.unbanUser(id);
+    if (act === 'del') { if (!confirm('کاربر برای همیشه حذف بشه؟')) return; await AUTH.deleteUserProfile(id); }
+    if (act === 'ext') await AUTH.extendPlan(id, 1);
+    if (act === 'appr') await AUTH.approvePayment(id);
+    if (act === 'rej') await AUTH.rejectPayment(id);
+    renderAdmin();
+  } catch (err) { alert('خطا: ' + err.message); }
+});
+function injectAdminFab(){
+  if (document.getElementById('novaAdminFab') || !AUTH.isLoggedIn()) return;
+  AUTH.isAdmin().then(ok => {
+    if (!ok || document.getElementById('novaAdminFab')) return;
+    const f = document.createElement('button');
+    f.id = 'novaAdminFab'; f.textContent = '👑';
+    f.onclick = openAdmin;
+    document.body.appendChild(f);
+  });
+}
+
 function bindSupport(){
   document.querySelectorAll('*').forEach(el => {
     if (el.children.length) return;
