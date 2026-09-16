@@ -13,15 +13,23 @@ function showPremiumModal(){
   document.body.appendChild(m);
   m.querySelector('#npmBuy').onclick = function(){
     m.remove();
-    var tabs = document.querySelectorAll('[data-tab], .tab-btn, [onclick*="tab"]');
-    tabs.forEach(function(t){
-      var txt = (t.textContent || '').toLowerCase();
-      if (txt.indexOf('pricing') !== -1 || txt.indexOf('خرید') !== -1 || txt.indexOf('طرح') !== -1) t.click();
+    var clicked = false;
+    document.querySelectorAll('button, a, [onclick]').forEach(function(t){
+      if (clicked) return;
+      var txt = (t.textContent || '').trim().toUpperCase();
+      if (txt === 'PROFILE' || txt === 'پروفایل') { t.click(); clicked = true; }
     });
     setTimeout(function(){
-      var p = document.querySelector('#pricing, [id*="pricing"]');
-      if (p) p.scrollIntoView({behavior:'smooth'});
-    }, 200);
+      var target = document.querySelector('#premium, [id*="premium"], [id*="plan"], [class*="premium"]');
+      if (!target) {
+        document.querySelectorAll('*').forEach(function(el){
+          if (target || el.children.length) return;
+          var tx = (el.textContent || '').trim().toUpperCase();
+          if (tx === 'PREMIUM') target = el;
+        });
+      }
+      if (target) target.scrollIntoView({behavior:'smooth', block:'start'});
+    }, 400);
   };
   m.querySelector('#npmLater').onclick = function(){ m.remove(); };
 }
