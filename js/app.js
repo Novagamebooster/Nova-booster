@@ -409,6 +409,7 @@ function initApp() {
             toast("Best server found");
             if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BoostCore && Capacitor.Plugins.BoostCore.startVpn) {
                 try {
+                    if (window.NOVA_SECURITY) await window.NOVA_SECURITY.guard();
                     if (!window.NOVA_AUTH || !window.NOVA_AUTH.isLoggedIn()) { if (window.NOVA_AUTH) window.NOVA_AUTH.showAuth(); toast('اول وارد حساب NOVA شو! ☁️'); return; }
                     var banR = await window.NOVA_AUTH.isBanned();
                     if (banR) { toast('⛔ حساب مسدود: ' + banR); return; }
