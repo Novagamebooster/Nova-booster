@@ -1402,3 +1402,43 @@ body.nova-boosting #boostCard::after {
 .nova-cloud-ok { color: #4ade80; font-size: 12px; }
 
 .na-settings-btn { background: linear-gradient(135deg, #ffd166, #ff9f43); color: #1a1a1a; font-weight: 900; border: none; margin-bottom: 12px; box-shadow: 0 0 16px rgba(255,209,102,.35); }
+
+/* ===== مودال اشتراک فعال ===== */
+#novaPremiumModal {
+  position: fixed; inset: 0; z-index: 99998;
+  background: rgba(0,0,0,.85); backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: npmFade .3s ease-out;
+}
+@keyframes npmFade { from { opacity: 0; } to { opacity: 1; } }
+.npm-card {
+  background: linear-gradient(145deg, #0f1828, #1a2340);
+  border: 1px solid rgba(255,209,102,.3);
+  border-radius: 22px;
+  padding: 32px 26px;
+  max-width: 360px; width: 100%;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(255,209,102,.15);
+  animation: npmPop .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes npmPop { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.npm-icon { font-size: 56px; margin-bottom: 12px; filter: drop-shadow(0 0 12px rgba(255,209,102,.5)); }
+.npm-title { color: #ffd166; font-size: 19px; font-weight: 900; margin-bottom: 12px; letter-spacing: .5px; }
+.npm-desc { color: #b8c5d6; font-size: 14px; line-height: 1.8; margin-bottom: 24px; }
+.npm-btn {
+  width: 100%; border: none; border-radius: 12px;
+  padding: 13px; font-size: 15px; font-weight: 800;
+  cursor: pointer; margin-bottom: 8px; transition: transform .15s;
+}
+.npm-btn:active { transform: scale(.97); }
+.npm-btn-gold {
+  background: linear-gradient(135deg, #ffd166, #ff9f43);
+  color: #1a1a1a;
+  box-shadow: 0 4px 16px rgba(255,209,102,.35);
+}
+.npm-btn-ghost {
+  background: rgba(255,255,255,.06);
+  color: #8fa3b8;
+  border: 1px solid rgba(255,255,255,.1);
+}
