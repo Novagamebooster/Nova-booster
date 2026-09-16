@@ -389,7 +389,7 @@ async function doAuth(mode){
   try {
     if (mode === 'in') await AUTH.signIn(em, ps); else await AUTH.signUp(em, ps, em.split('@')[0]);
     msg.textContent = '✅ خوش اومدی!';
-    refreshCloudStatus(); injectAdminFab();
+    refreshCloudStatus(); injectAdminFab(); injectAdminSettingsBtn();
     setTimeout(hideAuth, 700);
   } catch (e) { msg.textContent = '❌ ' + (e.message || 'خطا'); }
 }
@@ -409,6 +409,7 @@ function injectCloudCard(){
   document.getElementById('novaLogout').onclick = async () => {
     await AUTH.signOut();
     const f = document.getElementById('novaAdminFab'); if (f) f.remove();
+    const s = document.getElementById('novaAdminSettingsBtn'); if (s) s.remove();
     refreshCloudStatus();
   };
 }
@@ -590,9 +591,28 @@ document.addEventListener('click', async (e) => {
   }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  buildAuthUI(); bindSupport(); injectCloudCard(); refreshCloudStatus(); injectAdminFab();
-});
+function injectAdminSettingsBtn(){
+  if (!AUTH.isLoggedIn()) return;
+  AUTH.isAdmin().then(ok => {
+    if (!ok || document.getElementById('novaAdminSettingsBtn')) return;
+    const logoutBtn = Array.from(document.querySelectorAll('button')).find(b => (b.textContent || '').includes('خروج از حساب کاربری'));
+    const b = document.createElement('button');
+    b.id = 'novaAdminSettingsBtn';
+    b.className = 'btn-full na-settings-btn';
+    b.textContent = '👑 پنل مدیریت';
+    b.onclick = openAdmin;
+    if (logoutBtn) logoutBtn.parentElement.insertBefore(b, logoutBtn);
+    else document.body.appendChild(b);
+  });
+}
+let novaBooted = false;
+function bootNova(){
+  if (novaBooted) return;
+  novaBooted = true;
+  buildAuthUI(); bindSupport(); injectCloudCard(); refreshCloudStatus(); injectAdminFab(); injectAdminSettingsBtn();
+}
+bootNova();
+
 </script>
 
 <script type="module">

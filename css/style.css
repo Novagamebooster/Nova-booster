@@ -1400,3 +1400,5 @@ body.nova-boosting #boostCard::after {
 .nova-cloud-title { color: #00e5ff; font-weight: 800; font-size: 14px; }
 .nova-cloud-info { color: #cfd8e3; font-size: 13px; line-height: 1.9; }
 .nova-cloud-ok { color: #4ade80; font-size: 12px; }
+
+.na-settings-btn { background: linear-gradient(135deg, #ffd166, #ff9f43); color: #1a1a1a; font-weight: 900; border: none; margin-bottom: 12px; box-shadow: 0 0 16px rgba(255,209,102,.35); }
