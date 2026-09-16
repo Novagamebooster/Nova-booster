@@ -1,3 +1,30 @@
+
+function showPremiumModal(){
+  if (document.getElementById('novaPremiumModal')) return;
+  var m = document.createElement('div');
+  m.id = 'novaPremiumModal';
+  m.innerHTML = '<div class="npm-card">' +
+    '<div class="npm-icon">🔒</div>' +
+    '<div class="npm-title">اشتراک فعال ندارید</div>' +
+    '<div class="npm-desc">برای کاهش پینگ و تجربه بهتر در بازی، نیاز به اشتراک فعال NOVA دارید.</div>' +
+    '<button id="npmBuy" class="npm-btn npm-btn-gold">💎 مشاهده طرح‌ها و خرید</button>' +
+    '<button id="npmLater" class="npm-btn npm-btn-ghost">بعداً</button>' +
+    '</div>';
+  document.body.appendChild(m);
+  m.querySelector('#npmBuy').onclick = function(){
+    m.remove();
+    var tabs = document.querySelectorAll('[data-tab], .tab-btn, [onclick*="tab"]');
+    tabs.forEach(function(t){
+      var txt = (t.textContent || '').toLowerCase();
+      if (txt.indexOf('pricing') !== -1 || txt.indexOf('خرید') !== -1 || txt.indexOf('طرح') !== -1) t.click();
+    });
+    setTimeout(function(){
+      var p = document.querySelector('#pricing, [id*="pricing"]');
+      if (p) p.scrollIntoView({behavior:'smooth'});
+    }, 200);
+  };
+  m.querySelector('#npmLater').onclick = function(){ m.remove(); };
+}
 let state = {
     selectedGame: localStorage.getItem("nova_selected_game") || null,
     pingHistory: [],
@@ -413,6 +440,9 @@ function initApp() {
                     if (!window.NOVA_AUTH || !window.NOVA_AUTH.isLoggedIn()) { if (window.NOVA_AUTH) window.NOVA_AUTH.showAuth(); toast('اول وارد حساب NOVA شو! ☁️'); return; }
                     var banR = await window.NOVA_AUTH.isBanned();
                     if (banR) { toast('⛔ حساب مسدود: ' + banR); return; }
+                    var prof = await window.NOVA_AUTH.getProfile().catch(function(){ return null; });
+                    var isPremium = prof && prof.plan_expires && new Date(prof.plan_expires).getTime() > Date.now();
+                    if (!isPremium) { if (window.showPremiumModal) showPremiumModal(); else toast('برای بوست، اشتراک فعال لازمه 💎'); return; }
                     await Capacitor.Plugins.BoostCore.startVpn({ server: best.name });
                     toast('🛡️ سرور ' + best.name + ' فعال شد!');
                 } catch (e) {}
