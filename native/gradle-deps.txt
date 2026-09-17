@@ -1,0 +1,4 @@
+    // NOVA WireGuard Tunnel
+    implementation 'com.wireguard.android:tunnel:1.0.20230706'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    implementation 'androidx.core:core-ktx:1.12.0'
