@@ -52,10 +52,10 @@ a{text-decoration:none;color:inherit}
 header{padding:14px 0;position:fixed;top:0;left:0;right:0;z-index:100;
   background:rgba(5,13,11,.75);backdrop-filter:blur(18px);border-bottom:1px solid rgba(34,211,238,.08)}
 nav{display:flex;justify-content:space-between;align-items:center}
-nav .brand .mark{width:38px;height:38px;font-size:18px}
+nav .brand .mark{width:56px;height:56px;font-size:26px}
 
-nav .brand .wm-nova{font-size:15px}
-nav .brand .wm-sub{font-size:7px}
+nav .brand .wm-nova{font-size:22px;letter-spacing:6px;margin-left:-6px}
+nav .brand .wm-sub{font-size:11px;letter-spacing:2px;margin-left:-2px}
 nav ul{display:flex;gap:26px;list-style:none;font-size:14px}
 nav ul a{color:var(--muted);transition:.2s}
 nav ul a:hover{color:var(--cyan)}
@@ -68,9 +68,10 @@ nav ul a:hover{color:var(--cyan)}
 .chip .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 .hero .brand{justify-content:center;margin-bottom:26px}
+.hero .brand .mark{width:110px;height:110px;font-size:52px}
 .hero .brand .wordmark{align-items:center}
-.hero .wm-nova{font-size:clamp(34px,7vw,58px);letter-spacing:.38em;margin-left:-.38em}
-.hero .wm-sub{font-size:clamp(11px,2vw,15px);letter-spacing:.62em;margin-left:-.62em}
+.hero .wm-nova{font-size:34px;letter-spacing:6px;margin-left:-6px}
+.hero .wm-sub{font-size:12px;letter-spacing:4px;margin-left:-4px}
 .hero p.lead{color:var(--muted);max-width:620px;margin:0 auto 36px;font-size:17px}
 .btn{padding:16px 36px;border-radius:14px;font-weight:800;font-size:15px;transition:.25s;
   display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:none}
