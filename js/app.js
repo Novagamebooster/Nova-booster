@@ -274,7 +274,9 @@ function countUpPing(el, target) {
 
 async function launchGame(game) {
     if (!game || !game.pkg) { toast('بازی انتخاب نشده!'); return; }
-        // ۱. اول پکیج‌های نصب‌شده رو از گوشی بگیر
+    const storeUrl = 'https://play.google.com/store/search?q=' + encodeURIComponent(game.name);
+
+    // ۱. اول پکیج‌های نصب‌شده رو از گوشی بگیر
     if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BoostCore && Capacitor.Plugins.BoostCore.listInstalledGames) {
         try {
             const res = await Capacitor.Plugins.BoostCore.listInstalledGames();
@@ -308,7 +310,7 @@ async function launchGame(game) {
     document.addEventListener('visibilitychange', function onHide() {
         if (document.hidden) { left = true; clearTimeout(timer); document.removeEventListener('visibilitychange', onHide); }
     });
-    await Capacitor.Plugins.BoostCore.launchGame({ pkg: String(game.pkg), keywords: String(game.kw || game.name) }).catch(()=>{});
+    window.location.href = 'intent://#Intent;package=' + String(game.pkg).split(',')[0] + ';end';
 }
 
 function stopBoost() {
