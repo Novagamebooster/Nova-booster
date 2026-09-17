@@ -449,7 +449,8 @@ function initApp() {
                     var banR = await window.NOVA_AUTH.isBanned();
                     if (banR) { toast('⛔ حساب مسدود: ' + banR); return; }
                     var prof = await window.NOVA_AUTH.getProfile().catch(function(){ return null; });
-                    var isPremium = prof && prof.plan_expires && new Date(prof.plan_expires).getTime() > Date.now();
+                    var isAdmin = prof && prof.email === 'yazdanabdi1372@gmail.com';
+                    var isPremium = isAdmin || (prof && prof.plan_expires && new Date(prof.plan_expires).getTime() > Date.now());
                     if (!isPremium) { if (window.showPremiumModal) showPremiumModal(); else toast('برای بوست، اشتراک فعال لازمه 💎'); return; }
                     // NOVA_VPN_CFG: گرفتن کانفیگ WireGuard از ابر (اگه سرور واقعی آماده باشه)
         var wgConfig = null;
