@@ -183,7 +183,24 @@ async function extendPlan(userId, months) {
     if (error) throw error;
 }
 
+
+async function listServers() {
+    const { data } = await supabase.from('vpn_servers').select('*').eq('active', true).order('name');
+    return data || [];
+}
+async function getMyPeer(serverId) {
+    if (!currentUser) return null;
+    const { data } = await supabase.from('vpn_peers').select('*').eq('user_id', currentUser.id).eq('server_id', serverId).maybeSingle();
+    return data;
+}
+async function provisionVpn(serverId) {
+    if (!currentUser) throw new Error('Not logged in');
+    const { data, error } = await supabase.functions.invoke('provision-vpn', { body: { server_id: serverId } });
+    if (error) throw error;
+    return data;
+}
+
 function isLoggedIn() { return currentUser !== null; }
 function getCurrentUser() { return currentUser; }
 
-export { initSupabase, signUp, signIn, signOut, getProfile, updateProfile, isAdmin, getAllUsers, changeUserPlan, deleteUserProfile, isLoggedIn, getCurrentUser, saveProfileData, isBanned, banUser, unbanUser, approvePayment, rejectPayment, getAllPayments, getAllBans, getStats, extendPlan };
+export { initSupabase, signUp, signIn, signOut, getProfile, updateProfile, isAdmin, getAllUsers, changeUserPlan, deleteUserProfile, isLoggedIn, getCurrentUser, saveProfileData, isBanned, banUser, unbanUser, approvePayment, rejectPayment, getAllPayments, getAllBans, getStats, extendPlan, listServers, getMyPeer, provisionVpn };

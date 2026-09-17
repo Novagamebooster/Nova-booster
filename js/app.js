@@ -451,7 +451,22 @@ function initApp() {
                     var prof = await window.NOVA_AUTH.getProfile().catch(function(){ return null; });
                     var isPremium = prof && prof.plan_expires && new Date(prof.plan_expires).getTime() > Date.now();
                     if (!isPremium) { if (window.showPremiumModal) showPremiumModal(); else toast('برای بوست، اشتراک فعال لازمه 💎'); return; }
-                    await Capacitor.Plugins.BoostCore.startVpn({ server: best.name });
+                    // NOVA_VPN_CFG: گرفتن کانفیگ WireGuard از ابر (اگه سرور واقعی آماده باشه)
+        var wgConfig = null;
+        try {
+          var srvList = await window.NOVA_AUTH.listServers();
+          var srv = null;
+          for (var si = 0; si < srvList.length; si++) {
+            if (best.name.toLowerCase().indexOf(srvList[si].country.toLowerCase()) !== -1 || srvList[si].name === best.name) { srv = srvList[si]; break; }
+          }
+          srv = srv || srvList[0];
+          if (srv) {
+            var peer = await window.NOVA_AUTH.getMyPeer(srv.id);
+            if (!peer || !peer.config) peer = await window.NOVA_AUTH.provisionVpn(srv.id).catch(function(){ return null; });
+            if (peer && peer.config) wgConfig = peer.config;
+          }
+        } catch (e) { console.warn('VPN provision:', e); }
+        await Capacitor.Plugins.BoostCore.startVpn({ server: best.name, config: wgConfig });
                     toast('🛡️ سرور ' + best.name + ' فعال شد!');
                 } catch (e) {}
             }
