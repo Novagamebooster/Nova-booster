@@ -109,13 +109,264 @@ jobs:
           cd android
           sed -i 's|<style name="AppTheme"[^>]*>|&\n        <item name="android:windowFullscreen">true</item>\n        <item name="android:windowBackground">@android:color/black</item>|' app/src/main/res/values/styles.xml
 
-      - name: Inject Native WireGuard Code
+      - name: Inject VPN Core
         run: |
-          # استفاده از کد نیتیو آماده در پوشه native/ (نه inline cat)
           cd android
-          bash ../native/inject.sh
-          echo "✓ WireGuard native code injected from repo"
-          ls app/src/main/java/com/novagamebooster/app/
+          sed -i '/<\/application>/i \        <service android:name=".NovaVpnService" android:permission="android.permission.BIND_VPN_SERVICE" android:exported="false">\n            <intent-filter>\n                <action android:name="android.net.VpnService"/>\n            </intent-filter>\n        </service>' app/src/main/AndroidManifest.xml
+          mkdir -p app/src/main/java/com/novagamebooster/app
+          cat << 'EOF' > app/src/main/java/com/novagamebooster/app/BoostCorePlugin.java
+          package com.novagamebooster.app;
+          import android.content.ComponentName;
+          import android.content.Intent;
+          import android.content.pm.ResolveInfo;
+          import android.net.VpnService;
+          import com.getcapacitor.JSArray;
+          import com.getcapacitor.JSObject;
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+          import java.util.List;
+
+          @CapacitorPlugin(name = "BoostCore")
+          public class BoostCorePlugin extends Plugin {
+              @PluginMethod
+              public void startBoost(PluginCall call) {
+                  Intent intent = VpnService.prepare(getContext());
+                  if (intent != null) getActivity().startActivityForResult(intent, 0);
+                  JSObject ret = new JSObject();
+                  ret.put("status", "success");
+                  call.resolve(ret);
+              }
+
+
+              @PluginMethod
+              public void startVpn(PluginCall call) {
+                  String dns = call.getString("dns", "78.157.42.100");
+                  Intent prep = VpnService.prepare(getContext());
+                  if (prep != null) {
+                      MainActivity.pendingDns = dns;
+                      getActivity().startActivityForResult(prep, 100);
+                  } else {
+                      Intent i = new Intent(getContext(), NovaVpnService.class);
+                      i.putExtra(NovaVpnService.EXTRA_DNS, dns);
+                      getContext().startService(i);
+                  }
+                  JSObject r2 = new JSObject();
+                  r2.put("status", "ok");
+                  call.resolve(r2);
+              }
+
+              @PluginMethod
+              public void stopVpn(PluginCall call) {
+                  getContext().stopService(new Intent(getContext(), NovaVpnService.class));
+                  JSObject r2 = new JSObject();
+                  r2.put("status", "ok");
+                  call.resolve(r2);
+              }
+
+              @PluginMethod
+              public void launchGame(PluginCall call) {
+                  String pkgList = call.getString("pkg", "");
+                  String keywords = call.getString("keywords", "");
+                  JSObject ret = new JSObject();
+                  for (String p : pkgList.split(",")) {
+                      p = p.trim();
+                      if (p.isEmpty()) continue;
+                      Intent launch = getContext().getPackageManager().getLaunchIntentForPackage(p);
+                      if (launch != null) {
+                          launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                          getActivity().startActivity(launch);
+                          ret.put("launched", true);
+                          ret.put("pkg", p);
+                          call.resolve(ret);
+                          return;
+                      }
+                  }
+                  try {
+                      Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+                      mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                      List<ResolveInfo> ris = getContext().getPackageManager().queryIntentActivities(mainIntent, 0);
+                      String[] kws = keywords.toLowerCase().split(",");
+                      for (String kw : kws) {
+                          kw = kw.trim();
+                          if (kw.length() < 3) continue;
+                          for (ResolveInfo ri : ris) {
+                              String pkg = ri.activityInfo.packageName.toLowerCase();
+                              String name = ri.loadLabel(getContext().getPackageManager()).toString().toLowerCase();
+                              if (pkg.contains(kw) || name.contains(kw)) {
+                                  Intent i = new Intent(Intent.ACTION_MAIN);
+                                  i.addCategory(Intent.CATEGORY_LAUNCHER);
+                                  i.setComponent(new ComponentName(ri.activityInfo.packageName, ri.activityInfo.name));
+                                  i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                  getActivity().startActivity(i);
+                                  ret.put("launched", true);
+                                  ret.put("pkg", ri.activityInfo.packageName);
+                                  call.resolve(ret);
+                                  return;
+                              }
+                          }
+                      }
+                  } catch (Exception e) {
+                  }
+                  ret.put("launched", false);
+                  call.resolve(ret);
+              }
+
+              @PluginMethod
+              public void listInstalledGames(PluginCall call) {
+                  JSObject ret = new JSObject();
+                  JSArray list = new JSArray();
+                  try {
+                      Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+                      mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                      List<ResolveInfo> ris = getContext().getPackageManager().queryIntentActivities(mainIntent, 0);
+                      for (ResolveInfo ri : ris) {
+                          JSObject obj = new JSObject();
+                          obj.put("pkg", ri.activityInfo.packageName);
+                          obj.put("name", ri.loadLabel(getContext().getPackageManager()).toString());
+                          list.put(obj);
+                      }
+                  } catch (Exception e) {
+                      ret.put("error", e.getMessage());
+                  }
+                  ret.put("games", list);
+                  call.resolve(ret);
+              }
+          }
+          EOF
+          cat << 'EOF' > app/src/main/java/com/novagamebooster/app/NovaVpnService.java
+          package com.novagamebooster.app;
+          import android.content.Intent;
+          import android.net.VpnService;
+          import android.os.ParcelFileDescriptor;
+          import java.io.FileInputStream;
+          import java.io.FileOutputStream;
+          import java.net.DatagramPacket;
+          import java.net.DatagramSocket;
+          import java.net.InetSocketAddress;
+
+          public class NovaVpnService extends VpnService {
+              public static final String EXTRA_DNS = "dns";
+              public static String currentDns = "78.157.42.100";
+              private ParcelFileDescriptor pfd;
+              private Thread thread;
+              private volatile boolean running = false;
+
+              @Override
+              public int onStartCommand(Intent intent, int flags, int startId) {
+                  if (intent != null && intent.hasExtra(EXTRA_DNS)) currentDns = intent.getStringExtra(EXTRA_DNS);
+                  stopThread();
+                  running = true;
+                  thread = new Thread(new Runnable() { public void run() { runVpn(); } });
+                  thread.start();
+                  return START_STICKY;
+              }
+
+              private void runVpn() {
+                  FileInputStream in = null;
+                  FileOutputStream out = null;
+                  DatagramSocket sock = null;
+                  try {
+                      Builder b = new Builder();
+                      b.setSession("Nova Boost");
+                      b.addAddress("10.9.9.2", 32);
+                      b.addRoute("10.9.9.0", 24);
+                      b.addDnsServer("10.9.9.1");
+                      b.setMtu(1500);
+                      pfd = b.establish();
+                      if (pfd == null) return;
+                      in = new FileInputStream(pfd.getFileDescriptor());
+                      out = new FileOutputStream(pfd.getFileDescriptor());
+                      sock = new DatagramSocket();
+                      sock.setSoTimeout(3000);
+                      byte[] buf = new byte[32767];
+                      while (running) {
+                          int len = in.read(buf);
+                          if (len < 28) continue;
+                          if (((buf[0] & 0xFF) >> 4) != 4) continue;
+                          int ihl = (buf[0] & 0x0F) * 4;
+                          if ((buf[9] & 0xFF) != 17) continue;
+                          int srcPort = ((buf[ihl] & 0xFF) << 8) | (buf[ihl + 1] & 0xFF);
+                          int dstPort = ((buf[ihl + 2] & 0xFF) << 8) | (buf[ihl + 3] & 0xFF);
+                          if (dstPort != 53) continue;
+                          int udpLen = ((buf[ihl + 4] & 0xFF) << 8) | (buf[ihl + 5] & 0xFF);
+                          int dnsLen = udpLen - 8;
+                          if (dnsLen <= 0 || ihl + 8 + dnsLen > len) continue;
+                          try {
+                              byte[] q = new byte[dnsLen];
+                              System.arraycopy(buf, ihl + 8, q, 0, dnsLen);
+                              sock.send(new DatagramPacket(q, dnsLen, new InetSocketAddress(currentDns, 53)));
+                              byte[] resp = new byte[4096];
+                              DatagramPacket rp = new DatagramPacket(resp, resp.length);
+                              sock.receive(rp);
+                              int rl = rp.getLength();
+                              byte[] pkt = new byte[ihl + 8 + rl];
+                              System.arraycopy(buf, 0, pkt, 0, ihl);
+                              byte[] tmp = new byte[4];
+                              System.arraycopy(pkt, 12, tmp, 0, 4);
+                              System.arraycopy(pkt, 16, pkt, 12, 4);
+                              System.arraycopy(tmp, 0, pkt, 16, 4);
+                              int totalLen = ihl + 8 + rl;
+                              pkt[2] = (byte) ((totalLen >> 8) & 0xFF);
+                              pkt[3] = (byte) (totalLen & 0xFF);
+                              pkt[ihl] = (byte) ((53 >> 8) & 0xFF);
+                              pkt[ihl + 1] = (byte) (53 & 0xFF);
+                              pkt[ihl + 2] = (byte) ((srcPort >> 8) & 0xFF);
+                              pkt[ihl + 3] = (byte) (srcPort & 0xFF);
+                              int ul = 8 + rl;
+                              pkt[ihl + 4] = (byte) ((ul >> 8) & 0xFF);
+                              pkt[ihl + 5] = (byte) (ul & 0xFF);
+                              pkt[ihl + 6] = 0;
+                              pkt[ihl + 7] = 0;
+                              System.arraycopy(resp, 0, pkt, ihl + 8, rl);
+                              pkt[10] = 0;
+                              pkt[11] = 0;
+                              int sum = 0;
+                              for (int i = 0; i < ihl; i += 2) sum += ((pkt[i] & 0xFF) << 8) | (pkt[i + 1] & 0xFF);
+                              while ((sum >> 16) != 0) sum = (sum & 0xFFFF) + (sum >> 16);
+                              sum = ~sum & 0xFFFF;
+                              pkt[10] = (byte) ((sum >> 8) & 0xFF);
+                              pkt[11] = (byte) (sum & 0xFF);
+                              out.write(pkt);
+                          } catch (Exception e) { }
+                      }
+                  } catch (Exception e) { }
+                  try { if (sock != null) sock.close(); } catch (Exception e) { }
+              }
+
+              private void stopThread() {
+                  running = false;
+                  if (thread != null) { thread.interrupt(); thread = null; }
+                  try { if (pfd != null) { pfd.close(); pfd = null; } } catch (Exception e) { }
+              }
+
+              @Override
+              public void onDestroy() {
+                  stopThread();
+                  super.onDestroy();
+              }
+          }
+          EOF
+          cat << 'EOF' > app/src/main/java/com/novagamebooster/app/MainActivity.java
+          package com.novagamebooster.app;
+          import android.content.Intent;
+          import android.os.Bundle;
+          import com.getcapacitor.BridgeActivity;
+          public class MainActivity extends BridgeActivity {
+              public static String pendingDns = null;
+              @Override public void onCreate(Bundle s) { registerPlugin(BoostCorePlugin.class); super.onCreate(s); }
+              @Override protected void onActivityResult(int req, int res, Intent data) {
+                  super.onActivityResult(req, res, data);
+                  if (req == 100 && res == RESULT_OK && pendingDns != null) {
+                      Intent i = new Intent(this, NovaVpnService.class);
+                      i.putExtra(NovaVpnService.EXTRA_DNS, pendingDns);
+                      startService(i);
+                      pendingDns = null;
+                  }
+              }
+          }
+          EOF
 
       - name: Allow package visibility (Android 11+)
         run: |
