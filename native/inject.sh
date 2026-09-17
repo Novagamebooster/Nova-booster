@@ -6,6 +6,20 @@ NATIVE_DIR="$PROJ_ROOT/native"
 
 echo "🔧 [NOVA] Injecting native WireGuard code..."
 
+# 0) ارتقای compileSdk/targetSdk به 34 (نیاز کتابخانه WireGuard tunnel)
+VARS="$ANDROID_DIR/variables.gradle"
+if [ -f "$VARS" ]; then
+    sed -i -E 's/compileSdkVersion[[:space:]]*=[[:space:]]*[0-9]+/compileSdkVersion = 34/' "$VARS"
+    sed -i -E 's/targetSdkVersion[[:space:]]*=[[:space:]]*[0-9]+/targetSdkVersion = 34/' "$VARS"
+    echo "  ✓ variables.gradle → SDK 34"
+fi
+BUILD_GRADLE="$ANDROID_DIR/app/build.gradle"
+if [ -f "$BUILD_GRADLE" ]; then
+    sed -i -E 's/compileSdkVersion[[:space:]]+[0-9]+/compileSdkVersion 34/' "$BUILD_GRADLE"
+    echo "  ✓ app/build.gradle → SDK 34"
+fi
+
+
 # 1) کپی BoostCorePlugin.java (جایگزین نسخه قبلی)
 PLUGIN_DIR="$ANDROID_DIR/app/src/main/java/com/novagamebooster/app"
 mkdir -p "$PLUGIN_DIR"
