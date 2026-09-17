@@ -44,6 +44,19 @@ if '</application>' in c and 'NovaVpnService' not in c:
 with open(p, 'w') as f: f.write(c)
 PYEOF
 echo "  ✓ Manifest: فقط NovaVpnService (بدون تداخل)"
+# 2b) مجوز دیدن بقیه اپ‌ها (الزامی اندروید ۱۱+)
+if [ -f "$MANIFEST" ]; then
+python3 - "$MANIFEST" << 'PYEOF2'
+import sys
+p = sys.argv[1]
+with open(p) as f: c = f.read()
+if 'QUERY_ALL_PACKAGES' not in c:
+    c = c.replace('<application', '<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />\n    <application', 1)
+    with open(p, 'w') as f: f.write(c)
+PYEOF2
+echo "  ✓ Manifest: QUERY_ALL_PACKAGES added"
+fi
+
 fi
 
 # 3) build.gradle: deps + kotlin + jvmTarget
