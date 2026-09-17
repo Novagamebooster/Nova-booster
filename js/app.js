@@ -272,44 +272,53 @@ function countUpPing(el, target) {
 
 /* dnsForServer: removed */
 
-async function launchGame(game) {
-    if (!game || !game.pkg) { toast('بازی انتخاب نشده!'); return; }
-        // ۱. اول پکیج‌های نصب‌شده رو از گوشی بگیر
-    if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BoostCore && Capacitor.Plugins.BoostCore.listInstalledGames) {
-        try {
-            const res = await Capacitor.Plugins.BoostCore.listInstalledGames();
-            const installed = (res.games || []).map(g => ({ pkg: g.pkg, name: g.name }));
-            const keywords = String(game.kw || game.name).split(',').map(s => s.trim());
-            const match = installed.find(g => keywords.some(k => g.pkg.toLowerCase().includes(k) || g.name.toLowerCase().includes(k)));
-            if (match) {
-                try {
-                    const lr = await Capacitor.Plugins.BoostCore.launchGame({ pkg: match.pkg });
-                    if (lr && lr.launched) { toast('🎮 ' + match.name + ' باز شد!'); return; }
-                } catch (e) {}
-            }
-            // fallback: تلاش همه پکیج‌های پیش‌فرض
-            try {
-                const lr = await Capacitor.Plugins.BoostCore.launchGame({ pkg: String(game.pkg), keywords: String(game.kw || game.name) });
-                if (lr && lr.launched) { toast('🎮 بازی باز شد!'); return; }
-                toast('❌ پیدا نشد! Settings → دکمه دیباگ');
-                setTimeout(() => { window.location.href = storeUrl; }, 1500);
-            } catch (e) {
-                setTimeout(() => { window.location.href = storeUrl; }, 500);
-            }
-            return;
-        } catch (e) {}
-    }
-
-    // fallback وب
-    let left = false;
-    const timer = setTimeout(function () {
-        if (!left) window.location.href = storeUrl;
-    }, 1500);
-    document.addEventListener('visibilitychange', function onHide() {
-        if (document.hidden) { left = true; clearTimeout(timer); document.removeEventListener('visibilitychange', onHide); }
-    });
-    await Capacitor.Plugins.BoostCore.launchGame({ pkg: String(game.pkg), keywords: String(game.kw || game.name) }).catch(()=>{});
+const NOVA_PKG_MAP = {
+  'mobile legends': 'com.mobile.legends',
+  'mlbb': 'com.mobile.legends',
+  'pubg': 'com.tencent.ig',
+  'call of duty': 'com.activision.callofduty.shooter',
+  'cod mobile': 'com.activision.callofduty.shooter',
+  'free fire max': 'com.dts.freefiremax',
+  'free fire': 'com.dts.freefireth',
+  'wild rift': 'com.riotgames.league.wildrift',
+  'clash of clans': 'com.supercell.clashofclans',
+  'clash royale': 'com.supercell.clashroyale',
+  'brawl stars': 'com.supercell.brawlstars',
+  'genshin impact': 'com.miHoYo.GenshinImpact',
+  'roblox': 'com.roblox.client',
+  'minecraft': 'com.mojang.minecraftpe',
+  'among us': 'com.innersloth.spacemafia',
+  'standoff 2': 'com.axlebolt.standoff2',
+  'critical ops': 'com.criticalforce.criticalops',
+  'efootball': 'jp.konami.pesam',
+  'fifa': 'com.ea.gp.fifamobile',
+  'asphalt': 'com.gameloft.android.ANMP.GloftA9HM',
+  'subway': 'com.kiloo.subwaysurf',
+  'candy crush': 'com.king.candycrushsaga',
+  'pokemon unite': 'jp.pokemon.pokemonunite',
+  'honor of kings': 'com.tencent.tmgp.sgame',
+  'arena of valor': 'com.garena.game.kgvn',
+  'fortnite': 'com.epicgames.fortnite'
+};
+function novaResolvePkg(game){
+  if (game && game.pkg) return String(game.pkg);
+  var name = String((game && game.name) || '').toLowerCase();
+  for (var k in NOVA_PKG_MAP) { if (name.indexOf(k) !== -1) return NOVA_PKG_MAP[k]; }
+  return '';
 }
+async function launchGame(game) {
+  var pkg = novaResolvePkg(game);
+  var kw = String((game && game.name) || '');
+  try {
+    if (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.BoostCore && Capacitor.Plugins.BoostCore.launchGame) {
+      await Capacitor.Plugins.BoostCore.launchGame({ pkg: pkg, keywords: kw });
+      return;
+    }
+  } catch (e) {}
+  if (pkg) window.open('https://play.google.com/store/apps/details?id=' + pkg, '_blank');
+  else window.open('https://play.google.com/store/search?q=' + encodeURIComponent(kw) + '&c=apps', '_blank');
+}
+
 
 function stopBoost() {
     state.boosting = false;
