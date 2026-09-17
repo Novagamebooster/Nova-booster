@@ -1,79 +1,48 @@
 package com.novagamebooster.app
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
+import android.app.Service
 import android.content.Intent
-import android.net.VpnService
-import android.os.Build
-import androidx.core.app.NotificationCompat
-import com.wireguard.android.backend.Backend
+import android.os.IBinder
+import android.util.Log
 import com.wireguard.android.backend.GoBackend
 import com.wireguard.android.backend.Tunnel
 import com.wireguard.config.Config
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 
-class NovaVpnService : VpnService(), Tunnel {
-    private var backend: Backend? = null
-    private var activeConfig: Config? = null
-    private val job = Job()
-    private val scope = CoroutineScope(Dispatchers.IO + job)
+class NovaVpnService : Service(), Tunnel {
+    private var backend: GoBackend? = null
+    private var currentConfig: Config? = null
 
     override fun getName(): String = "NOVA-WG"
-    override fun getState(): Tunnel.State = if (activeConfig != null) Tunnel.State.UP else Tunnel.State.DOWN
-    override fun onStateChange(newState: Tunnel.State) {}
+
+    override fun onStateChange(newState: Tunnel.State) {
+        Log.i("NOVA_VPN", "State: " + newState.name)
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val wgConfig = intent?.getStringExtra("config") ?: return START_NOT_STICKY
-        scope.launch {
+        val cfgText = intent?.getStringExtra("config") ?: return START_NOT_STICKY
+        Thread {
             try {
-                startForeground(NOTIF_ID, buildNotif("🔗 در حال اتصال به NOVA..."))
-                activeConfig = Config.parse(wgConfig)
-                backend = GoBackend(this@NovaVpnService)
-                backend?.setState(this@NovaVpnService, Tunnel.State.UP, activeConfig)
-                updateNotif("✅ متصل — پینگ کاهش یافت")
+                val cfg = Config.parse(cfgText)
+                currentConfig = cfg
+                if (backend == null) backend = GoBackend(this)
+                backend!!.setState(this, Tunnel.State.UP, cfg)
+                Log.i("NOVA_VPN", "Tunnel UP")
             } catch (e: Exception) {
-                updateNotif("❌ خطا: ${e.message}")
-                stopSelf()
+                Log.e("NOVA_VPN", "Tunnel error: " + e.message)
             }
-        }
+        }.start()
         return START_STICKY
     }
 
     override fun onDestroy() {
-        scope.launch {
-            try { backend?.setState(this@NovaVpnService, Tunnel.State.DOWN, activeConfig) } catch (_: Exception) {}
-        }
-        job.cancel()
+        Thread {
+            try {
+                val cfg = currentConfig
+                if (cfg != null) backend?.setState(this, Tunnel.State.DOWN, cfg)
+            } catch (_: Exception) {}
+        }.start()
         super.onDestroy()
     }
 
-    private fun buildNotif(text: String): android.app.Notification {
-        val channelId = "nova_vpn"
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val nm = getSystemService(NotificationManager::class.java)
-            if (nm.getNotificationChannel(channelId) == null) {
-                nm.createNotificationChannel(NotificationChannel(channelId, "NOVA VPN", NotificationManager.IMPORTANCE_LOW))
-            }
-        }
-        val intent = packageManager.getLaunchIntentForPackage(packageName)
-        val pi = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        return NotificationCompat.Builder(this, channelId)
-            .setContentTitle("NOVA Game Booster")
-            .setContentText(text)
-            .setSmallIcon(android.R.drawable.stat_sys_vpn_ic)
-            .setContentIntent(pi)
-            .setOngoing(true)
-            .build()
-    }
-
-    private fun updateNotif(text: String) {
-        val nm = getSystemService(NotificationManager::class.java)
-        nm.notify(NOTIF_ID, buildNotif(text))
-    }
-
-    companion object { const val NOTIF_ID = 9911 }
+    override fun onBind(intent: Intent?): IBinder? = null
 }
