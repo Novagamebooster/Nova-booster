@@ -6,7 +6,7 @@ NATIVE_DIR="$PROJ_ROOT/native"
 
 echo "🔧 [NOVA] Injecting native WireGuard code..."
 
-# 0) ارتقای compileSdk/targetSdk به 34
+# 0) ارتقای compileSdk/targetSdk به 34 (نیاز WireGuard tunnel)
 VARS="$ANDROID_DIR/variables.gradle"
 if [ -f "$VARS" ]; then
     sed -i -E 's/compileSdkVersion[[:space:]]*=[[:space:]]*[0-9]+/compileSdkVersion = 34/' "$VARS"
@@ -21,7 +21,7 @@ cp "$NATIVE_DIR/BoostCorePlugin.java" "$PLUGIN_DIR/BoostCorePlugin.java"
 cp "$NATIVE_DIR/NovaVpnService.kt" "$PLUGIN_DIR/NovaVpnService.kt"
 echo "  ✓ Java/Kotlin copied"
 
-# 2) پچ AndroidManifest: سرویس VPN کتابخانه + سرویس معمولی ما
+# 2) پچ AndroidManifest
 MANIFEST="$ANDROID_DIR/app/src/main/AndroidManifest.xml"
 if [ -f "$MANIFEST" ]; then
 python3 - "$MANIFEST" << 'PYEOF'
@@ -29,19 +29,11 @@ import sys, re
 p = sys.argv[1]
 with open(p) as f: c = f.read()
 c = re.sub(r'\s*<service[^>]*NovaVpnService[^>]*>[\s\S]*?</service>', '', c)
-c = re.sub(r'\s*<service[^>]*GoBackend[^>]*>[\s\S]*?</service>', '', c)
-if '</application>' in c and 'GoBackend' not in c:
-    snippet = '''        <service android:name=".NovaVpnService" android:exported="false" />
-        <service android:name="com.wireguard.android.backend.GoBackend$VpnService" android:exported="true" android:permission="android.permission.BIND_VPN_SERVICE">
-            <intent-filter>
-                <action android:name="android.net.VpnService" />
-            </intent-filter>
-        </service>
-    </application>'''
-    c = c.replace('</application>', snippet)
+if '</application>' in c and 'NovaVpnService' not in c:
+    c = c.replace('</application>', '        <service android:name=".NovaVpnService" android:permission="android.permission.BIND_VPN_SERVICE" android:exported="false"><intent-filter><action android:name="android.net.VpnService"/></intent-filter></service>\n    </application>')
 with open(p, 'w') as f: f.write(c)
 PYEOF
-echo "  ✓ Manifest: GoBackend\$VpnService declared"
+echo "  ✓ Manifest patched"
 fi
 
 # 3) پچ build.gradle (deps WireGuard + kotlin plugin)
