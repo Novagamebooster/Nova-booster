@@ -1,14 +1,18 @@
 package com.novagamebooster.app;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.net.VpnService;
-import android.content.pm.PackageManager;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+
+import java.util.List;
 
 @CapacitorPlugin(name = "BoostCore")
 public class BoostCorePlugin extends Plugin {
@@ -16,31 +20,6 @@ public class BoostCorePlugin extends Plugin {
     private PluginCall pendingCall = null;
     private String pendingConfig = null;
     private String pendingServer = null;
-
-    @Override
-    protected void handleOnActivityResult(int requestCode, int resultCode, Intent data) {
-        super.handleOnActivityResult(requestCode, resultCode, data);
-        if (requestCode == VPN_REQUEST_CODE) {
-            if (resultCode == getActivity().RESULT_OK && pendingConfig != null) {
-                launchWireGuard(pendingConfig, pendingServer);
-                if (pendingCall != null) {
-                    JSObject ret = new JSObject();
-                    ret.put("status", "success");
-                    ret.put("server", pendingServer);
-                    pendingCall.resolve(ret);
-                }
-            } else {
-                if (pendingCall != null) {
-                    JSObject ret = new JSObject();
-                    ret.put("status", "denied");
-                    pendingCall.resolve(ret);
-                }
-            }
-            pendingCall = null;
-            pendingConfig = null;
-            pendingServer = null;
-        }
-    }
 
     @PluginMethod
     public void launchGame(PluginCall call) {
@@ -58,7 +37,6 @@ public class BoostCorePlugin extends Plugin {
                     pm.getPackageInfo(p, 0);
                     Intent launchIntent = pm.getLaunchIntentForPackage(p);
                     if (launchIntent != null) {
-                        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         getContext().startActivity(launchIntent);
                         ret.put("status", "launched");
                         ret.put("pkg", p);
@@ -69,17 +47,29 @@ public class BoostCorePlugin extends Plugin {
             }
         }
 
+        // fallback: جستجو در Play Store
         String query = (keywords != null && !keywords.isEmpty()) ? keywords : pkg;
         if (query != null && !query.isEmpty()) {
             try {
                 Intent storeIntent = new Intent(Intent.ACTION_VIEW);
-                storeIntent.setData(Uri.parse("market://details?id=" + (pkg != null && !pkg.isEmpty() ? pkg.split(",")[0].trim() : "")));
+                storeIntent.setData(Uri.parse("market://search?q=" + Uri.encode(query) + "&c=apps"));
                 storeIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 getContext().startActivity(storeIntent);
                 ret.put("status", "store");
+                ret.put("query", query);
                 call.resolve(ret);
                 return;
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                try {
+                    Intent webIntent = new Intent(Intent.ACTION_VIEW,
+                            Uri.parse("https://play.google.com/store/search?q=" + Uri.encode(query) + "&c=apps"));
+                    webIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    getContext().startActivity(webIntent);
+                    ret.put("status", "web");
+                    call.resolve(ret);
+                    return;
+                } catch (Exception ignored) {}
+            }
         }
         ret.put("status", "failed");
         call.resolve(ret);
