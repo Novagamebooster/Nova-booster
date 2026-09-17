@@ -1442,3 +1442,15 @@ body.nova-boosting #boostCard::after {
   color: #8fa3b8;
   border: 1px solid rgba(255,255,255,.1);
 }
+
+/* ===== جلوگیری از انتخاب متن (مثل اپ‌های نیتیو) ===== */
+html, body, div, span, p, h1, h2, h3, h4, h5, h6, button, a, label, li, td, th {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input, textarea, .selectable {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}

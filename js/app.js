@@ -529,3 +529,6 @@ document.addEventListener('DOMContentLoaded', function(){
         btn.innerHTML = hidden ? '⌃' : '⌄';
     };
 });
+
+// جلوگیری از منوی long-press
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
