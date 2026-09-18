@@ -5,6 +5,9 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -401,3 +404,16 @@ jobs:
         with:
           name: NovaGameBooster-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Prepare release asset
+        run: |
+          mkdir -p release
+          find . -path ./release -prune -o -name "*.apk" -print0 | xargs -0 -I{} cp {} release/nova-booster.apk
+          ls -la release
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "NOVA Booster - Latest"
+          body: "آخرین نسخه خودکار ساخته‌شده توسط CI"
+          files: release/nova-booster.apk
