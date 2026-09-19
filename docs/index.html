@@ -187,6 +187,19 @@ a,button,summary,.plan,.feat,.gc,.lang-sel,.gmore{cursor:none}
 .pm-mail input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;direction:ltr;text-align:left}
 .track-in{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--text);font-family:inherit;font-size:14px;outline:none;direction:ltr;text-align:center;letter-spacing:1px}
 .track-res{margin-top:14px;font-size:13px;color:var(--muted);line-height:2;text-align:center}
+
+.pm-methods{display:flex;flex-direction:column;gap:8px}
+.pm-method{display:flex;align-items:center;gap:10px;padding:13px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--text);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;transition:.2s;text-align:start}
+.pm-method:hover{border-color:var(--cyan)}
+.pm-mi{font-size:18px}
+.pm-back{background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;margin-bottom:10px;font-family:inherit;padding:0}
+.pm-zbox{text-align:center;padding:10px 0}
+.pm-zsoon{font-size:12px;color:var(--muted);line-height:2;margin-top:8px}
+.pm-mail{margin-bottom:12px}
+.pm-lbl{font-size:11px;color:var(--muted);display:block;margin-bottom:6px}
+.pm-mail input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;direction:ltr;text-align:left}
+.track-in{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--text);font-family:inherit;font-size:14px;outline:none;direction:ltr;text-align:center;letter-spacing:1px}
+.track-res{margin-top:14px;font-size:13px;color:var(--muted);line-height:2;text-align:center}
 </style>
 </head>
 <body>
@@ -283,7 +296,7 @@ a,button,summary,.plan,.feat,.gc,.lang-sel,.gmore{cursor:none}
       <div class="price"><b data-price="0">۴۹</b><small data-i18n="pcur">هزار تومان</small></div>
       <span class="save"></span>
       <ul><li data-i18n="pb0">دسترسی به همه بازی‌ها</li><li data-i18n="pb1">سرور استاندارد</li><li data-i18n="pb2">پشتیبانی تلگرام</li></ul>
-      <button data-i18n="pbtn">انتخاب</button>
+      <button data-i18n="pbtn" onclick="openCheckout(0)">انتخاب</button>
     </div>
     <div class="plan hot reveal">
       <div class="badge" data-i18n="pbadge">محبوب</div>
@@ -291,14 +304,14 @@ a,button,summary,.plan,.feat,.gc,.lang-sel,.gmore{cursor:none}
       <div class="price"><b data-price="1">۱۱۹</b><small data-i18n="pcur">هزار تومان</small></div>
       <span class="save" data-i18n="sv1">۲۰٪ صرفه‌جویی</span>
       <ul><li data-i18n="pb3">همه امکانات ماهانه</li><li data-i18n="pb4">سرور کم‌تأخیر اختصاصی</li><li data-i18n="pb5">پشتیبانی اولویت‌دار</li></ul>
-      <button data-i18n="pbtn">انتخاب</button>
+      <button data-i18n="pbtn" onclick="openCheckout(1)">انتخاب</button>
     </div>
     <div class="plan reveal">
       <h3 data-i18n="pl2">سالانه</h3>
       <div class="price"><b data-price="2">۳۹۹</b><small data-i18n="pcur">هزار تومان</small></div>
       <span class="save" data-i18n="sv2">۳۲٪ صرفه‌جویی</span>
       <ul><li data-i18n="pb6">همه امکانات سه‌ماهه</li><li data-i18n="pb7">دسترسی زودهنگام به بازی‌های جدید</li><li data-i18n="pb8">پشتیبانی اولویت‌دار</li></ul>
-      <button data-i18n="pbtn">انتخاب</button>
+      <button data-i18n="pbtn" onclick="openCheckout(2)">انتخاب</button>
     </div>
   </div>
 </div></section>
@@ -376,6 +389,44 @@ a,button,summary,.plan,.feat,.gc,.lang-sel,.gmore{cursor:none}
     <div id="trackRes" class="track-res"></div>
   </div>
 </div>
+
+<div id="payModal" style="display:none">
+  <div class="pm-card">
+    <button class="pm-close" onclick="closeCheckout()" aria-label="Close">✕</button>
+    <div class="pm-title" id="pmPlan">—</div>
+    <div class="pm-sub" data-i18n="pay_sub"></div>
+    <div id="pmMethods">
+      <span class="pm-lbl" data-i18n="pay_method"></span>
+      <div class="pm-methods">
+        <button class="pm-method" onclick="chooseMethod('zarin')"><span class="pm-mi">🇮</span><span data-i18n="pm_zarin_title"></span></button>
+        <button class="pm-method" onclick="chooseMethod('usdt')"><span class="pm-mi">💵</span><span>USDT · TRC-20</span></button>
+        <button class="pm-method" onclick="chooseMethod('ton')"><span class="pm-mi">💎</span><span>TON</span></button>
+      </div>
+    </div>
+    <div id="pmCrypto" style="display:none">
+      <button class="pm-back" onclick="backToMethods()" data-i18n="pm_back"></button>
+      <div class="pm-mail"><span class="pm-lbl" data-i18n="pay_email"></span><input id="pmEmail" type="email" autocomplete="email"></div>
+      <div class="pm-coins">
+        <button class="pm-coin on" id="coinUSDT" onclick="setCoin('usdt')">USDT · TRC-20</button>
+        <button class="pm-coin" id="coinTON" onclick="setCoin('ton')">TON</button>
+      </div>
+      <div class="pm-amt"><b id="pmAmount">—</b><span data-i18n="pay_amount"></span></div>
+      <img class="pm-qr" id="pmQr" alt="Payment QR">
+      <div class="pm-addr"><code id="pmAddr">—</code><button id="pmCopy" data-i18n="pay_copy" onclick="copyAddr()"></button></div>
+      <div class="pm-code"><span data-i18n="pay_order"></span> <b id="pmCode">—</b></div>
+      <div class="pm-note" data-i18n="pay_note"></div>
+      <button class="pm-paid" data-i18n="pay_paid" onclick="paidClick()"></button>
+    </div>
+    <div id="pmZarin" style="display:none">
+      <button class="pm-back" onclick="backToMethods()" data-i18n="pm_back"></button>
+      <div class="pm-zbox">
+        <div style="font-size:34px">🇮</div>
+        <div class="pm-zsoon" data-i18n="pm_zarin_soon"></div>
+        <button class="pm-paid" style="margin-top:12px" data-i18n="pay_paid" onclick="window.open('https://t.me/NovaBoosterSupport','_blank')"></button>
+      </div>
+    </div>
+  </div>
+</div>
 <script src="i18n.js"></script>
 <script>
 var P=document.getElementById('progress'),H=document.querySelector('header'),T=document.getElementById('toTop');
@@ -398,6 +449,22 @@ function sbH(){return {apikey:SB.key,Authorization:"Bearer "+SB.key,"Content-Typ
 function createOrder(lang){var ei=document.getElementById("pmEmail");fetch(SB.url+"/rest/v1/orders",{method:"POST",headers:sbH(),body:JSON.stringify({code:pm.code,plan:pm.plan,coin:pm.coin,amount_expected:pm.usd,amount_text:pm.usd.toFixed(6)+" USDT",email:(ei&&ei.value)||"",lang:lang,status:"pending"})}).then(function(r){return r.json();}).then(function(d){pm.orderId=d&&d[0]?d[0].id:null;}).catch(function(e){console.error(e);});}
 function syncOrder(){if(!pm.orderId)return;var body={coin:pm.coin,amount_text:document.getElementById("pmAmount").textContent};body.amount_expected=(pm.coin==="ton"&&pm.tonAmt)?pm.tonAmt:pm.usd;fetch(SB.url+"/rest/v1/orders?id=eq."+pm.orderId,{method:"PATCH",headers:sbH(),body:JSON.stringify(body)}).catch(function(){});}
 function openCheckout(i){pm.plan=i;pm.orderId=null;pm.tonAmt=0;var card=document.querySelectorAll(".plan")[i];document.getElementById("pmPlan").textContent=card.querySelector("h3").textContent+" — NOVA";var seq=parseInt(localStorage.getItem("nova_seq")||"0",10)+1;try{localStorage.setItem("nova_seq",String(seq));}catch(e){}pm.code="NV-"+Date.now().toString(36).slice(-4).toUpperCase()+seq;var lang=window.NOVA_lang||"fa";pm.usd=BASE_USD[i]*(PPP[lang]||1)+seq/1e6;var em="";try{em=localStorage.getItem("nova_email")||"";}catch(e){}var ei=document.getElementById("pmEmail");if(ei)ei.value=em;document.getElementById("payModal").style.display="flex";setCoin(pm.coin);createOrder(lang);}
+function setCoin(c){pm.coin=c;document.getElementById("coinUSDT").classList.toggle("on",c==="usdt");document.getElementById("coinTON").classList.toggle("on",c==="ton");renderPay();}
+function renderPay(){var amt=document.getElementById("pmAmount"),adr=document.getElementById("pmAddr"),qr=document.getElementById("pmQr");document.getElementById("pmCode").textContent=pm.code;if(pm.coin==="usdt"){amt.textContent=pm.usd.toFixed(6)+" USDT";adr.textContent=PAY_ADDR.usdt;qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent(PAY_ADDR.usdt);syncOrder();}else{amt.textContent="...";fx().then(function(r){if(r&&r.TON){var t=pm.usd*r.TON;pm.tonAmt=t;amt.textContent=t.toFixed(6)+" TON";adr.textContent=PAY_ADDR.ton;qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent("ton://transfer/"+PAY_ADDR.ton+"?amount="+Math.round(t*1e9));syncOrder();}else{amt.textContent="TON rate unavailable";}});}}
+function paidClick(){var ei=document.getElementById("pmEmail");var em=ei?ei.value.trim():"";try{if(em)localStorage.setItem("nova_email",em);}catch(e){}if(pm.orderId&&em){fetch(SB.url+"/rest/v1/orders?id=eq."+pm.orderId,{method:"PATCH",headers:sbH(),body:JSON.stringify({email:em})}).catch(function(){});}window.open("https://t.me/NovaBoosterSupport","_blank");}
+function openTrack(){document.getElementById("trackModal").style.display="flex";document.getElementById("trackRes").innerHTML="";}
+function closeTrack(){document.getElementById("trackModal").style.display="none";}
+function doTrack(){var code=document.getElementById("trackIn").value.trim();var res=document.getElementById("trackRes");if(!code)return;res.innerHTML="...";fetch(SB.url+"/rest/v1/orders?code=eq."+encodeURIComponent(code)+"&select=*",{headers:sbH()}).then(function(r){return r.json();}).then(function(o){if(!o||!o.length){res.innerHTML=tLabel("track_notfound");return;}var ord=o[0];if(ord.status==="paid"){fetch(SB.url+"/rest/v1/licenses?order_id=eq."+ord.id+"&select=key",{headers:sbH()}).then(function(r){return r.json();}).then(function(l){res.innerHTML=tLabel("track_paid")+' <b style="color:var(--green);direction:ltr;unicode-bidi:embed;display:block;margin-top:6px">'+(l&&l[0]?l[0].key:"—")+"</b>";});}else{res.innerHTML=tLabel("track_pending");}}).catch(function(){res.innerHTML=tLabel("track_notfound");});}
+document.getElementById("trackModal").addEventListener("click",function(e){if(e.target&&e.target.id==="trackModal")closeTrack();});
+
+var SB={url:"https://bpveghqcmxblczvazuff.supabase.co",key:"sb_publishable_OM63vvx8fQhSwGFPfQb9Uw_szdybLKS"};
+var ZP={enabled:false,merchant:""};
+function sbH(){return {apikey:SB.key,Authorization:"Bearer "+SB.key,"Content-Type":"application/json"};}
+function chooseMethod(m){document.getElementById("pmMethods").style.display="none";if(m==="zarin"){document.getElementById("pmZarin").style.display="block";if(ZP.enabled){/* بعد از پذیرندگی: redirect به proxy */}}else{document.getElementById("pmCrypto").style.display="block";setCoin(m);}}
+function backToMethods(){document.getElementById("pmCrypto").style.display="none";document.getElementById("pmZarin").style.display="none";document.getElementById("pmMethods").style.display="block";}
+function createOrder(lang){var ei=document.getElementById("pmEmail");fetch(SB.url+"/rest/v1/orders",{method:"POST",headers:sbH(),body:JSON.stringify({code:pm.code,plan:pm.plan,coin:pm.coin,amount_expected:pm.usd,amount_text:pm.usd.toFixed(6)+" USDT",email:(ei&&ei.value)||"",lang:lang,status:"pending"})}).then(function(r){return r.json();}).then(function(d){pm.orderId=d&&d[0]?d[0].id:null;}).catch(function(e){console.error(e);});}
+function syncOrder(){if(!pm.orderId)return;var body={coin:pm.coin,amount_text:document.getElementById("pmAmount").textContent};body.amount_expected=(pm.coin==="ton"&&pm.tonAmt)?pm.tonAmt:pm.usd;fetch(SB.url+"/rest/v1/orders?id=eq."+pm.orderId,{method:"PATCH",headers:sbH(),body:JSON.stringify(body)}).catch(function(){});}
+function openCheckout(i){pm.plan=i;pm.orderId=null;pm.tonAmt=0;var card=document.querySelectorAll(".plan")[i];document.getElementById("pmPlan").textContent=card.querySelector("h3").textContent+" — NOVA";var seq=parseInt(localStorage.getItem("nova_seq")||"0",10)+1;try{localStorage.setItem("nova_seq",String(seq));}catch(e){}pm.code="NV-"+Date.now().toString(36).slice(-4).toUpperCase()+seq;var lang=window.NOVA_lang||"fa";pm.usd=BASE_USD[i]*(PPP[lang]||1)+seq/1e6;var em="";try{em=localStorage.getItem("nova_email")||"";}catch(e){}var ei=document.getElementById("pmEmail");if(ei)ei.value=em;document.getElementById("pmMethods").style.display="block";document.getElementById("pmCrypto").style.display="none";document.getElementById("pmZarin").style.display="none";document.getElementById("payModal").style.display="flex";createOrder(lang);}
 function setCoin(c){pm.coin=c;document.getElementById("coinUSDT").classList.toggle("on",c==="usdt");document.getElementById("coinTON").classList.toggle("on",c==="ton");renderPay();}
 function renderPay(){var amt=document.getElementById("pmAmount"),adr=document.getElementById("pmAddr"),qr=document.getElementById("pmQr");document.getElementById("pmCode").textContent=pm.code;if(pm.coin==="usdt"){amt.textContent=pm.usd.toFixed(6)+" USDT";adr.textContent=PAY_ADDR.usdt;qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent(PAY_ADDR.usdt);syncOrder();}else{amt.textContent="...";fx().then(function(r){if(r&&r.TON){var t=pm.usd*r.TON;pm.tonAmt=t;amt.textContent=t.toFixed(6)+" TON";adr.textContent=PAY_ADDR.ton;qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent("ton://transfer/"+PAY_ADDR.ton+"?amount="+Math.round(t*1e9));syncOrder();}else{amt.textContent="TON rate unavailable";}});}}
 function paidClick(){var ei=document.getElementById("pmEmail");var em=ei?ei.value.trim():"";try{if(em)localStorage.setItem("nova_email",em);}catch(e){}if(pm.orderId&&em){fetch(SB.url+"/rest/v1/orders?id=eq."+pm.orderId,{method:"PATCH",headers:sbH(),body:JSON.stringify({email:em})}).catch(function(){});}window.open("https://t.me/NovaBoosterSupport","_blank");}
