@@ -200,6 +200,26 @@ a,button,summary,.plan,.feat,.gc,.lang-sel,.gmore{cursor:none}
 .pm-mail input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;direction:ltr;text-align:left}
 .track-in{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--text);font-family:inherit;font-size:14px;outline:none;direction:ltr;text-align:center;letter-spacing:1px}
 .track-res{margin-top:14px;font-size:13px;color:var(--muted);line-height:2;text-align:center}
+
+#payModal{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:rgba(3,5,9,.72);backdrop-filter:blur(8px);padding:20px}
+.pm-card{background:var(--bg2);border:1px solid var(--line);border-radius:22px;max-width:420px;width:100%;padding:26px;position:relative;max-height:90vh;overflow:auto}
+.pm-close{position:absolute;top:14px;inset-inline-end:14px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer}
+.pm-title{font-size:16px;font-weight:800;margin-bottom:4px}
+.pm-sub{color:var(--muted);font-size:12px;margin-bottom:16px}
+.pm-coins{display:flex;gap:8px;margin-bottom:16px}
+.pm-coin{flex:1;padding:10px;border-radius:12px;border:1.5px solid var(--line);background:transparent;color:var(--muted);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;transition:.2s}
+.pm-coin.on{border-color:var(--cyan);color:var(--cyan);background:rgba(0,200,255,.08)}
+.pm-amt{background:var(--card);border:1px dashed rgba(0,200,255,.4);border-radius:14px;padding:12px;text-align:center;margin-bottom:12px}
+.pm-amt b{font-family:'Orbitron',monospace;font-size:19px;color:var(--cyan);direction:ltr;unicode-bidi:embed;display:block}
+.pm-amt span{font-size:11px;color:var(--muted)}
+.pm-qr{display:block;margin:0 auto 12px;border-radius:14px;background:#fff;padding:8px;width:180px;height:180px}
+.pm-addr{display:flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:12px}
+.pm-addr code{flex:1;font-size:11px;color:var(--text);direction:ltr;unicode-bidi:embed;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-addr button{background:rgba(0,200,255,.1);border:1px solid rgba(0,200,255,.3);color:var(--cyan);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;flex:none}
+.pm-code{text-align:center;font-size:12px;color:var(--muted);margin-bottom:10px}
+.pm-code b{color:var(--pink);font-family:'Orbitron',monospace;letter-spacing:1px}
+.pm-note{font-size:11px;color:var(--muted);line-height:1.9;background:rgba(236,72,153,.06);border:1px solid rgba(236,72,153,.2);border-radius:12px;padding:10px;margin-bottom:14px}
+.pm-paid{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#030509;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit}
 </style>
 </head>
 <body>
@@ -444,6 +464,7 @@ window.toggleGames=function(){
 };
 if(matchMedia('(pointer:fine)').matches){var d=document.createElement('div');d.className='cd';var r2=document.createElement('div');r2.className='cr';document.body.append(d,r2);var mx=0,my=0,rx=0,ry=0;addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY;d.style.transform='translate('+(mx-3)+'px,'+(my-3)+'px)';});(function L(){rx+=(mx-rx)*.16;ry+=(my-ry)*.16;r2.style.transform='translate('+rx+'px,'+ry+'px) translate(-50%,-50%)';requestAnimationFrame(L);})();document.querySelectorAll('a,button,summary,.plan,.feat,.gc,.lang-sel').forEach(function(el){el.addEventListener('mouseenter',function(){r2.classList.add('hov');});el.addEventListener('mouseleave',function(){r2.classList.remove('hov');});});}
 
+var PAY_ADDR={usdt:"THp3evgPMkF7jiBJfYJEMbxz2wAaSq96aK",ton:"UQB2qCvXNegkNWLhvwtkaxG9fBR31ojEB41PKgwToOeMkmQe"};
 var SB={url:"https://bpveghqcmxblczvazuff.supabase.co",key:"sb_publishable_OM63vvx8fQhSwGFPfQb9Uw_szdybLKS"};
 function sbH(){return {apikey:SB.key,Authorization:"Bearer "+SB.key,"Content-Type":"application/json"};}
 function createOrder(lang){var ei=document.getElementById("pmEmail");fetch(SB.url+"/rest/v1/orders",{method:"POST",headers:sbH(),body:JSON.stringify({code:pm.code,plan:pm.plan,coin:pm.coin,amount_expected:pm.usd,amount_text:pm.usd.toFixed(6)+" USDT",email:(ei&&ei.value)||"",lang:lang,status:"pending"})}).then(function(r){return r.json();}).then(function(d){pm.orderId=d&&d[0]?d[0].id:null;}).catch(function(e){console.error(e);});}
