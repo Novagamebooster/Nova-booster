@@ -464,6 +464,8 @@ window.toggleGames=function(){
 };
 if(matchMedia('(pointer:fine)').matches){var d=document.createElement('div');d.className='cd';var r2=document.createElement('div');r2.className='cr';document.body.append(d,r2);var mx=0,my=0,rx=0,ry=0;addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY;d.style.transform='translate('+(mx-3)+'px,'+(my-3)+'px)';});(function L(){rx+=(mx-rx)*.16;ry+=(my-ry)*.16;r2.style.transform='translate('+rx+'px,'+ry+'px) translate(-50%,-50%)';requestAnimationFrame(L);})();document.querySelectorAll('a,button,summary,.plan,.feat,.gc,.lang-sel').forEach(function(el){el.addEventListener('mouseenter',function(){r2.classList.add('hov');});el.addEventListener('mouseleave',function(){r2.classList.remove('hov');});});}
 
+</script>
+<script>
 var PAY_ADDR={usdt:"THp3evgPMkF7jiBJfYJEMbxz2wAaSq96aK",ton:"UQB2qCvXNegkNWLhvwtkaxG9fBR31ojEB41PKgwToOeMkmQe"};
 var SB={url:"https://bpveghqcmxblczvazuff.supabase.co",key:"sb_publishable_OM63vvx8fQhSwGFPfQb9Uw_szdybLKS"};
 function sbH(){return {apikey:SB.key,Authorization:"Bearer "+SB.key,"Content-Type":"application/json"};}
@@ -493,6 +495,7 @@ function openTrack(){document.getElementById("trackModal").style.display="flex";
 function closeTrack(){document.getElementById("trackModal").style.display="none";}
 function doTrack(){var code=document.getElementById("trackIn").value.trim();var res=document.getElementById("trackRes");if(!code)return;res.innerHTML="...";fetch(SB.url+"/rest/v1/orders?code=eq."+encodeURIComponent(code)+"&select=*",{headers:sbH()}).then(function(r){return r.json();}).then(function(o){if(!o||!o.length){res.innerHTML=tLabel("track_notfound");return;}var ord=o[0];if(ord.status==="paid"){fetch(SB.url+"/rest/v1/licenses?order_id=eq."+ord.id+"&select=key",{headers:sbH()}).then(function(r){return r.json();}).then(function(l){res.innerHTML=tLabel("track_paid")+' <b style="color:var(--green);direction:ltr;unicode-bidi:embed;display:block;margin-top:6px">'+(l&&l[0]?l[0].key:"—")+"</b>";});}else{res.innerHTML=tLabel("track_pending");}}).catch(function(){res.innerHTML=tLabel("track_notfound");});}
 document.getElementById("trackModal").addEventListener("click",function(e){if(e.target&&e.target.id==="trackModal")closeTrack();});
+
 </script>
 </body>
 </html>
