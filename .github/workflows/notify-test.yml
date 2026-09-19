@@ -1,0 +1,11 @@
+name: notify-test
+on: [workflow_dispatch]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send test message
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+            -H 'Content-Type: application/json' \
+            -d '{"chat_id":"${{ secrets.TELEGRAM_CHAT_ID }}","text":"🟢 ربات اطلاع‌رسان NOVA فعال شد!\nاز این به بعد هر واریز (کریپتو یا ریالی) همین‌جا گزارش می‌شه."}'
