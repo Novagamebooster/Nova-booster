@@ -256,6 +256,36 @@ header.scrolled{padding:8px 0;background:rgba(5,13,11,.92)}
 .rules-list details[open] summary::after{content:"–"}
 .rules-list p{color:var(--muted);font-size:13.5px;line-height:2.1;margin-top:10px}
 .rules-list b{color:var(--pink)}
+
+/* ===== LEGEND UPGRADE ===== */
+.hero-wrap{position:relative;overflow:hidden}
+.hero-grid{position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(0,200,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,.07) 1px,transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse at center,black 30%,transparent 80%);
+  animation:gridDrift 20s linear infinite}
+@keyframes gridDrift{to{background-position:60px 60px,60px 60px}}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;pointer-events:none;z-index:0}
+.hero-orb.a{width:420px;height:420px;background:#8b5cf6;top:-120px;right:-100px;animation:orbFloat 9s ease-in-out infinite}
+.hero-orb.b{width:360px;height:360px;background:#00c8ff;bottom:-140px;left:-120px;animation:orbFloat 12s ease-in-out infinite reverse}
+@keyframes orbFloat{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-40px)}}
+.hero-wrap > *:not(.hero-grid):not(.hero-orb){position:relative;z-index:1}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.9,.3,1.2)}
+.reveal.show{opacity:1;transform:translateY(0)}
+.plan-card{transition:transform .25s cubic-bezier(.2,.9,.3,1.2),box-shadow .25s}
+.plan-card.tilted{box-shadow:0 30px 60px -20px rgba(0,200,255,.35)}
+@keyframes shimmer{0%{left:-60%}100%{left:130%}}
+.btn-boost::after{animation:shimmer 3s ease-in-out infinite}
+.hero-title{background-size:300% 300%;animation:gradShift 8s ease infinite}
+@keyframes gradShift{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+@media (pointer:fine){
+  body{cursor:none}
+  .cursor-dot,.cursor-ring{position:fixed;top:0;left:0;pointer-events:none;z-index:9999;border-radius:50%;mix-blend-mode:screen}
+  .cursor-dot{width:6px;height:6px;background:var(--cyan);transform:translate(-50%,-50%)}
+  .cursor-ring{width:36px;height:36px;border:1.5px solid rgba(0,200,255,.5);transform:translate(-50%,-50%);transition:width .2s,height .2s,border-color .2s}
+  .cursor-ring.hover{width:60px;height:60px;border-color:var(--pink)}
+}
+
 </style>
 </head>
 <body>
@@ -277,7 +307,7 @@ header.scrolled{padding:8px 0;background:rgba(5,13,11,.92)}
   <a class="cta-nav" href="#download">دانلود</a>
 </nav></div></header>
 
-<section class="hero"><div class="wrap">
+<section class="hero"><div class="hero-wrap"><div class="hero-grid"></div><div class="hero-orb a"></div><div class="hero-orb b"></div><div class="wrap">
   <div class="chip"><span class="dot"></span> ONLINE — سرورها آماده بوست</div>
   <div class="brand">
     <div class="mark"><b>N</b></div>
@@ -320,7 +350,7 @@ header.scrolled{padding:8px 0;background:rgba(5,13,11,.92)}
       <div class="s-nav"><span>SETTINGS</span><span>PROFILE</span><span class="on">HOME</span></div>
     </div></div>
   </div>
-</div></section>
+</div></div></section>
 
 <section id="features"><div class="wrap">
   <div class="sec-tag">FEATURES</div><h2 class="sec">چرا <span class="grad">NOVA</span>؟</h2>
