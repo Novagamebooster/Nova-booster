@@ -286,6 +286,18 @@ header.scrolled{padding:8px 0;background:rgba(5,13,11,.92)}
   .cursor-ring.hover{width:60px;height:60px;border-color:var(--pink)}
 }
 
+
+.games-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:36px}
+@media(max-width:860px){.games-grid{grid-template-columns:repeat(2,1fr);gap:12px}}
+.game-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;transition:.3s;position:relative;overflow:hidden}
+.game-card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(0,200,255,.14),transparent 65%);opacity:0;transition:.3s}
+.game-card:hover{transform:translateY(-6px);border-color:rgba(0,200,255,.4)}
+.game-card:hover::before{opacity:1}
+.game-card img{width:64px;height:64px;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.45);transition:.3s}
+.game-card:hover img{transform:scale(1.12)}
+.game-card b{font-size:13px;font-weight:700}
+.game-card span{font-size:10px;color:var(--cyan);background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.22);padding:3px 12px;border-radius:999px}
+.games-note{margin-top:26px;color:var(--muted);font-size:13px;text-align:center}
 </style>
 </head>
 <body>
