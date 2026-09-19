@@ -50,7 +50,7 @@
 }
 
 .logo-text { font-family: 'Orbitron', 'Segoe UI', sans-serif; font-size: 32px; font-weight: 900; letter-spacing: 6px; text-transform: uppercase; background: linear-gradient(135deg, var(--cyan), var(--purple), var(--teal), var(--blue)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.tagline { color: var(--muted); font-size: 12px; letter-spacing: 4px; margin-top: 4px; }
+.tagline { font-family: 'Orbitron', 'Segoe UI', sans-serif; font-weight: 500; color: #8b93a7; font-size: 12px; letter-spacing: 4px; margin-top: 4px; text-transform: uppercase; }
 
 .auth-tabs { display: flex; gap: 10px; margin-bottom: 25px; background: var(--card); padding: 5px; border-radius: 12px; border: 1px solid var(--line); width: 100%; max-width: 400px; }
 .auth-tab { flex: 1; padding: 12px 24px; background: transparent; border: none; color: var(--muted); font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; font-family: inherit; }
