@@ -19,7 +19,7 @@ function fx(){
   try{c=JSON.parse(localStorage.getItem("nova_fx")||"null");}catch(e){}
   if(c&&Date.now()-c.t<3600000){FX=c.r;return Promise.resolve(FX);}
   return fetch("https://open.er-api.com/v6/latest/USD").then(function(r){return r.json();}).then(function(d){
-    FX={TRY:d.rates.TRY,PHP:d.rates.PHP};
+    FX={TRY:d.rates.TRY,PHP:d.rates.PHP,TON:d.rates.TON};
     try{localStorage.setItem("nova_fx",JSON.stringify({t:Date.now(),r:FX}));}catch(e){}
     return FX;
   }).catch(function(){return c?c.r:null;});
