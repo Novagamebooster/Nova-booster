@@ -181,6 +181,12 @@ a,button,summary,.plan,.feat,.gc,.lang-sel,.gmore{cursor:none}
 .cr{width:34px;height:34px;border:1.5px solid rgba(0,200,255,.5);transition:width .2s,height .2s,border-color .2s}
 .cr.hov{width:56px;height:56px;border-color:var(--pink)}
 }
+
+.pm-mail{margin-bottom:12px}
+.pm-lbl{font-size:11px;color:var(--muted);display:block;margin-bottom:6px}
+.pm-mail input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;direction:ltr;text-align:left}
+.track-in{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--text);font-family:inherit;font-size:14px;outline:none;direction:ltr;text-align:center;letter-spacing:1px}
+.track-res{margin-top:14px;font-size:13px;color:var(--muted);line-height:2;text-align:center}
 </style>
 </head>
 <body>
@@ -353,11 +359,23 @@ a,button,summary,.plan,.feat,.gc,.lang-sel,.gmore{cursor:none}
       <a href="https://t.me/NovaBoosterSupport" data-i18n="ft_tg">تلگرام</a>
       <a href="mailto:yazdanabdi1372@gmail.com" data-i18n="ft_mail">ایمیل</a>
       <a href="https://github.com/Novagamebooster/Nova-booster/releases/latest/download/nova-booster.apk" data-i18n="ft_dl">دانلود اپ</a>
+      <a href="#" onclick="openTrack();return false;" data-i18n="ft_track">پیگیری سفارش</a>
     </div>
   </div>
   <div class="fbar"><div data-i18n="ft_rights">© ۲۰۲۶ NOVA Game Booster — تمامی حقوق محفوظ است</div><div data-i18n="ft_made">ساخته‌شده در ایران 🇮🇷</div></div>
 </div></footer>
 
+
+<div id="trackModal" style="display:none">
+  <div class="pm-card">
+    <button class="pm-close" onclick="closeTrack()" aria-label="Close">✕</button>
+    <div class="pm-title" data-i18n="track_title"></div>
+    <div style="height:14px"></div>
+    <input id="trackIn" class="track-in" placeholder="NV-XXXX0">
+    <button class="pm-paid" style="margin-top:12px" data-i18n="track_btn" onclick="doTrack()"></button>
+    <div id="trackRes" class="track-res"></div>
+  </div>
+</div>
 <script src="i18n.js"></script>
 <script>
 var P=document.getElementById('progress'),H=document.querySelector('header'),T=document.getElementById('toTop');
@@ -374,6 +392,19 @@ window.toggleGames=function(){
   if(window.NOVA_applyLang)window.NOVA_applyLang(window.NOVA_lang||'fa');
 };
 if(matchMedia('(pointer:fine)').matches){var d=document.createElement('div');d.className='cd';var r2=document.createElement('div');r2.className='cr';document.body.append(d,r2);var mx=0,my=0,rx=0,ry=0;addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY;d.style.transform='translate('+(mx-3)+'px,'+(my-3)+'px)';});(function L(){rx+=(mx-rx)*.16;ry+=(my-ry)*.16;r2.style.transform='translate('+rx+'px,'+ry+'px) translate(-50%,-50%)';requestAnimationFrame(L);})();document.querySelectorAll('a,button,summary,.plan,.feat,.gc,.lang-sel').forEach(function(el){el.addEventListener('mouseenter',function(){r2.classList.add('hov');});el.addEventListener('mouseleave',function(){r2.classList.remove('hov');});});}
+
+var SB={url:"https://bpveghqcmxblczvazuff.supabase.co",key:"sb_publishable_OM63vvx8fQhSwGFPfQb9Uw_szdybLKS"};
+function sbH(){return {apikey:SB.key,Authorization:"Bearer "+SB.key,"Content-Type":"application/json"};}
+function createOrder(lang){var ei=document.getElementById("pmEmail");fetch(SB.url+"/rest/v1/orders",{method:"POST",headers:sbH(),body:JSON.stringify({code:pm.code,plan:pm.plan,coin:pm.coin,amount_expected:pm.usd,amount_text:pm.usd.toFixed(6)+" USDT",email:(ei&&ei.value)||"",lang:lang,status:"pending"})}).then(function(r){return r.json();}).then(function(d){pm.orderId=d&&d[0]?d[0].id:null;}).catch(function(e){console.error(e);});}
+function syncOrder(){if(!pm.orderId)return;var body={coin:pm.coin,amount_text:document.getElementById("pmAmount").textContent};body.amount_expected=(pm.coin==="ton"&&pm.tonAmt)?pm.tonAmt:pm.usd;fetch(SB.url+"/rest/v1/orders?id=eq."+pm.orderId,{method:"PATCH",headers:sbH(),body:JSON.stringify(body)}).catch(function(){});}
+function openCheckout(i){pm.plan=i;pm.orderId=null;pm.tonAmt=0;var card=document.querySelectorAll(".plan")[i];document.getElementById("pmPlan").textContent=card.querySelector("h3").textContent+" — NOVA";var seq=parseInt(localStorage.getItem("nova_seq")||"0",10)+1;try{localStorage.setItem("nova_seq",String(seq));}catch(e){}pm.code="NV-"+Date.now().toString(36).slice(-4).toUpperCase()+seq;var lang=window.NOVA_lang||"fa";pm.usd=BASE_USD[i]*(PPP[lang]||1)+seq/1e6;var em="";try{em=localStorage.getItem("nova_email")||"";}catch(e){}var ei=document.getElementById("pmEmail");if(ei)ei.value=em;document.getElementById("payModal").style.display="flex";setCoin(pm.coin);createOrder(lang);}
+function setCoin(c){pm.coin=c;document.getElementById("coinUSDT").classList.toggle("on",c==="usdt");document.getElementById("coinTON").classList.toggle("on",c==="ton");renderPay();}
+function renderPay(){var amt=document.getElementById("pmAmount"),adr=document.getElementById("pmAddr"),qr=document.getElementById("pmQr");document.getElementById("pmCode").textContent=pm.code;if(pm.coin==="usdt"){amt.textContent=pm.usd.toFixed(6)+" USDT";adr.textContent=PAY_ADDR.usdt;qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent(PAY_ADDR.usdt);syncOrder();}else{amt.textContent="...";fx().then(function(r){if(r&&r.TON){var t=pm.usd*r.TON;pm.tonAmt=t;amt.textContent=t.toFixed(6)+" TON";adr.textContent=PAY_ADDR.ton;qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent("ton://transfer/"+PAY_ADDR.ton+"?amount="+Math.round(t*1e9));syncOrder();}else{amt.textContent="TON rate unavailable";}});}}
+function paidClick(){var ei=document.getElementById("pmEmail");var em=ei?ei.value.trim():"";try{if(em)localStorage.setItem("nova_email",em);}catch(e){}if(pm.orderId&&em){fetch(SB.url+"/rest/v1/orders?id=eq."+pm.orderId,{method:"PATCH",headers:sbH(),body:JSON.stringify({email:em})}).catch(function(){});}window.open("https://t.me/NovaBoosterSupport","_blank");}
+function openTrack(){document.getElementById("trackModal").style.display="flex";document.getElementById("trackRes").innerHTML="";}
+function closeTrack(){document.getElementById("trackModal").style.display="none";}
+function doTrack(){var code=document.getElementById("trackIn").value.trim();var res=document.getElementById("trackRes");if(!code)return;res.innerHTML="...";fetch(SB.url+"/rest/v1/orders?code=eq."+encodeURIComponent(code)+"&select=*",{headers:sbH()}).then(function(r){return r.json();}).then(function(o){if(!o||!o.length){res.innerHTML=tLabel("track_notfound");return;}var ord=o[0];if(ord.status==="paid"){fetch(SB.url+"/rest/v1/licenses?order_id=eq."+ord.id+"&select=key",{headers:sbH()}).then(function(r){return r.json();}).then(function(l){res.innerHTML=tLabel("track_paid")+' <b style="color:var(--green);direction:ltr;unicode-bidi:embed;display:block;margin-top:6px">'+(l&&l[0]?l[0].key:"—")+"</b>";});}else{res.innerHTML=tLabel("track_pending");}}).catch(function(){res.innerHTML=tLabel("track_notfound");});}
+document.getElementById("trackModal").addEventListener("click",function(e){if(e.target&&e.target.id==="trackModal")closeTrack();});
 </script>
 </body>
 </html>
