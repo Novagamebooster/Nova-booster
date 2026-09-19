@@ -1456,3 +1456,7 @@ input, textarea, .selectable {
   user-select: text;
   -webkit-touch-callout: default;
 }
+
+/* brand fonts everywhere (match website) */
+.splash-sub{font-family:'Orbitron','Segoe UI',sans-serif !important;font-weight:500 !important;color:#8b93a7 !important;letter-spacing:4px !important;text-transform:uppercase !important;}
+.splash-title{font-family:'Orbitron','Segoe UI',sans-serif !important;font-weight:900 !important;letter-spacing:6px !important;text-transform:uppercase !important;}
