@@ -396,7 +396,10 @@ jobs:
           """
           if '<queries>' not in s:
               s = s.replace('</manifest>', add + '</manifest>')
-          if 'android:allowBackup="false"' not in s:
+          import re
+          if 'android:allowBackup=' in s:
+              s = re.sub(r'android:allowBackup="[^"]*"', 'android:allowBackup="false"', s, count=1)
+          else:
               s = s.replace('<application', '<application android:allowBackup="false"', 1)
           open(p, 'w').write(s)
           print('=== manifest tail ===')
