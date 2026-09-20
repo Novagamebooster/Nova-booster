@@ -54,15 +54,16 @@
       sync();
     } else {
       amt.textContent="...";
-      fetch("https://open.er-api.com/v6/latest/USD").then(function(r){return r.json();}).then(function(d){
-        if(d&&d.rates&&d.rates.TON){
-          var t=state.usd*d.rates.TON;state.tonAmt=t;
+      fetch("https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd").then(function(r){return r.json();}).then(function(d){
+        var p=d&&d["the-open-network"]?d["the-open-network"].usd:0;
+        if(p>0){
+          var t=state.usd/p;state.tonAmt=t;
           amt.textContent=t.toFixed(6)+" TON";
           adr.textContent=PAY.ton;
           qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent("ton://transfer/"+PAY.ton+"?amount="+Math.round(t*1e9));
           sync();
-        } else amt.textContent="TON rate unavailable";
-      }).catch(function(){amt.textContent="TON rate unavailable";});
+        } else { amt.textContent="TON rate unavailable"; qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent(PAY.ton); }
+      }).catch(function(){amt.textContent="TON rate unavailable";qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent(PAY.ton);});
     }
   }
 
