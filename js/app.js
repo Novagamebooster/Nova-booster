@@ -113,11 +113,28 @@ function updateSelectedGameName() {
     el.textContent = game ? game.name.toUpperCase() : "NO GAME SELECTED";
 }
 
-const servers = [
-    { name: "Turkey - Istanbul", host: "www.hurriyet.com.tr", port: 443, auto: true, ping: null, angle: 320, dist: 65, country: "Turkey", wireguard: null },
-    { name: "Germany - Frankfurt", host: "www.t-online.de", port: 443, auto: true, ping: null, angle: 290, dist: 90, country: "Germany", wireguard: null },
-    { name: "UAE - Dubai", host: "www.etisalat.ae", port: 443, auto: true, ping: null, angle: 160, dist: 55, country: "UAE", wireguard: null }
+const DEFAULT_SERVERS = [
+    { name: "Turkey - Istanbul", host: "", port: 443, auto: true, ping: null, angle: 320, dist: 65, country: "Turkey", wireguard: null, health_url: "" },
+    { name: "Germany - Frankfurt", host: "", port: 443, auto: true, ping: null, angle: 290, dist: 90, country: "Germany", wireguard: null, health_url: "" },
+    { name: "UAE - Dubai", host: "", port: 443, auto: true, ping: null, angle: 160, dist: 55, country: "UAE", wireguard: null, health_url: "" }
 ];
+let servers = DEFAULT_SERVERS.map(s => ({ ...s }));
+
+async function loadVpnServersFromCloud() {
+    try {
+        if (!window.NOVA_AUTH || !window.NOVA_AUTH.listServers) return;
+        const rows = await window.NOVA_AUTH.listServers();
+        if (!Array.isArray(rows) || !rows.length) return;
+        servers = rows.map((r, i) => ({
+            id: r.id, name: r.name || r.country || `Server ${i + 1}`,
+            host: r.host || r.hostname || '', port: Number(r.port || 443),
+            auto: r.auto !== false, ping: null, angle: Number(r.angle ?? ((i * 83) % 360)),
+            dist: Number(r.dist ?? 65), country: r.country || '', wireguard: r.wireguard || null,
+            health_url: r.health_url || (r.host ? `https://${r.host}/healthz` : '')
+        })).filter(s => s.host);
+        renderServers();
+    } catch (e) { console.warn('Cloud servers unavailable:', e); }
+}
 
 function switchServerTab(tab, btn) {
     state.serverTab = tab;
@@ -188,34 +205,31 @@ function renderServers() {
 
 
 // پینگ واقعی: زمان تا پاسخ یا شکست اتصال
-async function realPing(host, useHttps) {
-    const url = (useHttps ? 'https://' : 'http://') + host + '/';
-    const ctrl = new AbortController();
-    const timer = setTimeout(function () { ctrl.abort(); }, 3000);
-    const startT = performance.now();
-    try {
-        await fetch(url, { mode: 'no-cors', cache: 'no-store', signal: ctrl.signal });
-    } catch (e) {}
-    clearTimeout(timer);
-    const ms = Math.floor(performance.now() - startT);
-    return ms >= 2900 ? 999 : ms;
-}
-
-// پینگ مستقیم سرور (بدون DNS)
-async function pingServer(server) {
-    const raw = await realPing(server.host, true);
-    const ping = raw >= 999 ? 999 : Math.max(8, Math.round(raw / 4));
-    return { ping: ping };
-}
-
-async function fakePing(server) {
-    const result = await pingServer(server);
-    return result.ping;
+async function measureServer(server) {
+    const url = server.health_url || (server.host ? `https://${server.host}/healthz` : '');
+    if (!url) return { ping: 999, measured: false };
+    const samples = [];
+    for (let i = 0; i < 3; i++) {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 3000);
+        const start = performance.now();
+        try {
+            const res = await fetch(url, { cache: 'no-store', signal: ctrl.signal });
+            const ms = Math.round(performance.now() - start);
+            if (res.ok) samples.push(ms);
+        } catch (_) {}
+        clearTimeout(timer);
+    }
+    if (!samples.length) return { ping: 999, measured: false };
+    samples.sort((a,b) => a-b);
+    return { ping: samples[Math.floor(samples.length / 2)], measured: true };
 }
 
 async function refreshServers() {
     for (const server of servers) {
-        server.ping = await fakePing(server);
+        const result = await measureServer(server);
+        server.ping = result.ping;
+        server.measured = result.measured;
         renderServers();
     }
 }
@@ -393,7 +407,7 @@ function initApp() {
         }, 50);
     updateSelectedGameName();
     renderServers();
-    refreshServers();
+    loadVpnServersFromCloud().finally(() => refreshServers());
     createRadarParticles();
     renderHistory();
     loadProfile();
@@ -424,7 +438,9 @@ function initApp() {
             : servers.filter(s => s.auto);
         if (serversToTest.length === 0) serversToTest = servers.filter(s => s.auto);
         for (const server of serversToTest) {
-            server.ping = await fakePing(server);
+            const result = await measureServer(server);
+            server.ping = result.ping;
+            server.measured = result.measured;
             renderServers();
         }
         const best = serversToTest.filter(s => s.ping !== null && s.ping < 999).sort((a, b) => a.ping - b.ping)[0];
@@ -434,9 +450,9 @@ function initApp() {
             state.currentBest = best.host;
             countUpPing(document.getElementById("pingValue"), best.ping);
             document.getElementById("serverValue").textContent = best.name.toUpperCase();
-            document.getElementById("jitter").textContent = Math.max(1, Math.floor(best.ping * 0.07)) + " ms";
-            document.getElementById("loss").textContent = (Math.random() * 0.7).toFixed(1) + "%";
-            document.getElementById("route").textContent = best.host.split(".")[0].toUpperCase();
+            document.getElementById("jitter").textContent = "--";
+            document.getElementById("loss").textContent = "--";
+            document.getElementById("route").textContent = best.country ? best.country.toUpperCase() : "SERVER";
             state.pingHistory.push(best.ping);
             if (state.pingHistory.length > 10) state.pingHistory.shift();
             renderHistory();
@@ -449,7 +465,7 @@ function initApp() {
                     var banR = await window.NOVA_AUTH.isBanned();
                     if (banR) { toast('⛔ حساب مسدود: ' + banR); return; }
                     var prof = await window.NOVA_AUTH.getProfile().catch(function(){ return null; });
-                    var isAdmin = prof && prof.email === 'yazdanabdi1372@gmail.com';
+                    var isAdmin = prof && prof.is_admin === true;
                     var isPremium = isAdmin || (prof && prof.plan_expires && new Date(prof.plan_expires).getTime() > Date.now());
                     if (!isPremium) { if (window.showPremiumModal) showPremiumModal(); else toast('برای بوست، اشتراک فعال لازمه 💎'); return; }
                     // NOVA_VPN_CFG: گرفتن کانفیگ WireGuard از ابر (اگه سرور واقعی آماده باشه)
@@ -458,15 +474,21 @@ function initApp() {
           var srvList = await window.NOVA_AUTH.listServers();
           var srv = null;
           for (var si = 0; si < srvList.length; si++) {
-            if (best.name.toLowerCase().indexOf(srvList[si].country.toLowerCase()) !== -1 || srvList[si].name === best.name) { srv = srvList[si]; break; }
+            var country = (srvList[si].country || '').toLowerCase();
+            if ((country && best.name.toLowerCase().indexOf(country) !== -1) || srvList[si].name === best.name) { srv = srvList[si]; break; }
           }
           srv = srv || srvList[0];
-          if (srv) {
-            var peer = await window.NOVA_AUTH.getMyPeer(srv.id);
-            if (!peer || !peer.config) peer = await window.NOVA_AUTH.provisionVpn(srv.id).catch(function(){ return null; });
-            if (peer && peer.config) wgConfig = peer.config;
-          }
-        } catch (e) { console.warn('VPN provision:', e); }
+          if (!srv) throw new Error('No active VPN server configured');
+          if (!Capacitor.Plugins.BoostCore.getWireGuardPublicKey) throw new Error('WireGuard native core is missing');
+          var keyInfo = await Capacitor.Plugins.BoostCore.getWireGuardPublicKey();
+          var peer = await window.NOVA_AUTH.provisionVpn(srv.id, keyInfo.publicKey);
+          if (!peer || !peer.config) throw new Error('VPN provisioning returned no config');
+          wgConfig = peer.config;
+        } catch (e) {
+          console.warn('VPN provision:', e);
+          toast('اتصال VPN آماده نیست: ' + (e.message || 'خطای پیکربندی'));
+          return;
+        }
         await Capacitor.Plugins.BoostCore.startVpn({ server: best.name, config: wgConfig });
                     toast('🛡️ سرور ' + best.name + ' فعال شد!');
                 } catch (e) {}

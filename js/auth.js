@@ -80,8 +80,9 @@ async function updateProfile(updates) {
 
 // Admin functions
 async function isAdmin() {
-    if (!currentUser) return false;
-    return currentUser.email === 'yazdanabdi1372@gmail.com';
+    if (!currentUser || !supabase) return false;
+    const { data, error } = await supabase.from('profiles').select('is_admin').eq('id', currentUser.id).maybeSingle();
+    return !error && data?.is_admin === true;
 }
 
 async function getAllUsers() {
@@ -185,7 +186,7 @@ async function extendPlan(userId, months) {
 
 
 async function listServers() {
-    const { data } = await supabase.from('vpn_servers').select('*').eq('active', true).order('name');
+    const { data } = await supabase.from('vpn_servers').select('id,name,country,host,port,active,health_url,auto,angle,dist').eq('active', true).order('name');
     return data || [];
 }
 async function getMyPeer(serverId) {
@@ -193,9 +194,10 @@ async function getMyPeer(serverId) {
     const { data } = await supabase.from('vpn_peers').select('*').eq('user_id', currentUser.id).eq('server_id', serverId).maybeSingle();
     return data;
 }
-async function provisionVpn(serverId) {
+async function provisionVpn(serverId, publicKey) {
     if (!currentUser) throw new Error('Not logged in');
-    const { data, error } = await supabase.functions.invoke('provision-vpn', { body: { server_id: serverId } });
+    if (!publicKey) throw new Error('WireGuard public key is required');
+    const { data, error } = await supabase.functions.invoke('provision-vpn', { body: { server_id: serverId, public_key: publicKey } });
     if (error) throw error;
     return data;
 }

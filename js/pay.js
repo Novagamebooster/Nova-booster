@@ -1,8 +1,4 @@
 // NOVA Payment System
-const TG_BOT = '8941385867:AAF43nQ8Zpl0BOQFFnOtVxixmbD_SexTeds';
-const TG_CHAT = '6345819822';
-const ADMIN_EMAIL = 'yazdanabdi1372@gmail.com';
-
 async function getSupabaseClient() {
     let tries = 0;
     while (!window.novaSupabase && tries < 30) { await new Promise(r => setTimeout(r, 100)); tries++; }
@@ -11,12 +7,10 @@ async function getSupabaseClient() {
 
 async function notifyAdminTelegram(msg) {
     try {
-        if (!TG_BOT || TG_BOT.includes('PLACEHOLDER')) return;
-        await fetch('https://api.telegram.org/bot' + TG_BOT + '/sendMessage', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: TG_CHAT, text: msg, parse_mode: 'HTML' })
-        });
-    } catch (e) {}
+        const sb = await getSupabaseClient();
+        if (!sb) return;
+        await sb.functions.invoke('notify-payment', { body: { message: msg } });
+    } catch (e) { console.warn('notify-payment unavailable'); }
 }
 
 function wireCopyCard() {
@@ -73,7 +67,8 @@ async function checkPremium() {
         if (!sb) return;
         const { data: { user } } = await sb.auth.getUser();
         if (!user) return;
-        if (user.email === ADMIN_EMAIL) {
+        const { data: profileForAdmin } = await sb.from('profiles').select('is_admin').eq('id', user.id).single();
+        if (profileForAdmin && profileForAdmin.is_admin === true) {
             const { count } = await sb.from('payments').select('*', { count: 'exact', head: true }).eq('status', 'pending');
             if (count > 0) toast('💳 ' + count + ' پرداخت در انتظار شماست!');
         }

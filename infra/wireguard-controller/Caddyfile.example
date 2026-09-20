@@ -1,0 +1,4 @@
+# Replace vpn.example.com with the hostname you point to the VPS.
+vpn.example.com {
+    reverse_proxy 127.0.0.1:8080
+}

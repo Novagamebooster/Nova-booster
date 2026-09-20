@@ -120,7 +120,7 @@
   window.pollNow=function(){checkOrder();};
   function checkOrder(){
     pollTries++;
-    if(pollTries>80){if(pollTimer){clearInterval(pollTimer);pollTimer=null;}return;}return;}
+    if(pollTries>80){if(pollTimer){clearInterval(pollTimer);pollTimer=null;}return;}
     fetch(SB.url+"/rest/v1/orders?code=eq."+encodeURIComponent(state.code)+"&select=id,status",{headers:h()}).then(function(r){return r.json();}).then(function(o){
       if(o&&o[0]&&o[0].status==="paid"){
         if(pollTimer){clearInterval(pollTimer);pollTimer=null;}

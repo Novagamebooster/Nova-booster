@@ -66,11 +66,14 @@
     <script type="module">
         import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
         const sb = createClient("https://bpveghqcmxblczvazuff.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwdmVnaHFjbXhibGN6dmF6dWZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTMzNjIsImV4cCI6MjEwNDc4OTM2Mn0.1Cb7NFVETxPCPr9F4hwlNifSKvWDAagYQAGdA_DxMLk");
-        const ADMIN = 'yazdanabdi1372@gmail.com';
-
         async function init() {
             const { data: { user } } = await sb.auth.getUser();
-            if (!user || user.email !== ADMIN) {
+            if (!user) {
+                document.getElementById('adminAccess').style.display = 'block';
+                return;
+            }
+            const { data: profile } = await sb.from('profiles').select('is_admin').eq('id', user.id).single();
+            if (!profile || profile.is_admin !== true) {
                 document.getElementById('adminAccess').style.display = 'block';
                 return;
             }

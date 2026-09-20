@@ -28,7 +28,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - uses: actions/setup-java@v4
         with:
@@ -38,7 +38,7 @@ jobs:
       - name: Install Capacitor
         run: |
           echo '{"name":"nova-game-booster","version":"3.0.0","private":true}' > package.json
-          npm install @capacitor/cli@5.7.0 @capacitor/core@5.7.0 @capacitor/android@5.7.0 @capacitor/assets@3.0.5 --save-dev
+          npm install @capacitor/cli@8.5.2 @capacitor/core@8.5.2 @capacitor/android@8.5.2 @capacitor/assets@3.0.5 --save-dev
 
       - name: Generate neon icons
         run: |
@@ -112,264 +112,274 @@ jobs:
           cd android
           sed -i 's|<style name="AppTheme"[^>]*>|&\n        <item name="android:windowFullscreen">true</item>\n        <item name="android:windowBackground">@android:color/black</item>|' app/src/main/res/values/styles.xml
 
-      - name: Inject VPN Core
+      - name: Set Play-ready Android target
         run: |
           cd android
-          sed -i '/<\/application>/i \        <service android:name=".NovaVpnService" android:permission="android.permission.BIND_VPN_SERVICE" android:exported="false">\n            <intent-filter>\n                <action android:name="android.net.VpnService"/>\n            </intent-filter>\n        </service>' app/src/main/AndroidManifest.xml
+          python3 - << 'PY'
+          from pathlib import Path
+          p = Path('variables.gradle')
+          if p.exists():
+              s = p.read_text()
+              import re
+              s = re.sub(r'compileSdkVersion = \d+', 'compileSdkVersion = 36', s)
+              s = re.sub(r'targetSdkVersion = \d+', 'targetSdkVersion = 36', s)
+              p.write_text(s)
+          p2 = Path('app/build.gradle')
+          s = p2.read_text()
+          if 'compileSdkVersion 36' not in s:
+              s = s.replace('android {', 'android {\n    compileSdkVersion 36', 1)
+          if 'targetSdkVersion 36' not in s:
+              s = s.replace('defaultConfig {', 'defaultConfig {\n        targetSdkVersion 36', 1)
+          p2.write_text(s)
+          PY
+          grep -R "compileSdkVersion\|targetSdkVersion" -n variables.gradle app/build.gradle
+
+      - name: Add real WireGuard tunnel core
+        run: |
+          cd android
+          python3 - << 'PY'
+          from pathlib import Path
+          p = Path('app/build.gradle')
+          s = p.read_text()
+          if 'com.wireguard.android:tunnel' not in s:
+              s = s.replace('dependencies {', "dependencies {\n    implementation 'com.wireguard.android:tunnel:1.0.20260315'\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3'", 1)
+          if 'coreLibraryDesugaringEnabled true' not in s:
+              s = s.replace('android {', 'android {\n    compileOptions {\n        sourceCompatibility JavaVersion.VERSION_17\n        targetCompatibility JavaVersion.VERSION_17\n        coreLibraryDesugaringEnabled true\n    }', 1)
+          p.write_text(s)
+          PY
           mkdir -p app/src/main/java/com/novagamebooster/app
-          cat << 'EOF' > app/src/main/java/com/novagamebooster/app/BoostCorePlugin.java
+          cat << 'JAVA' > app/src/main/java/com/novagamebooster/app/BoostCorePlugin.java
           package com.novagamebooster.app;
-          import android.content.ComponentName;
+
+          import android.app.Activity;
+          import android.content.Context;
           import android.content.Intent;
-          import android.content.pm.ResolveInfo;
           import android.net.VpnService;
-          import com.getcapacitor.JSArray;
+          import android.security.keystore.KeyGenParameterSpec;
+          import android.security.keystore.KeyProperties;
+          import android.util.Base64;
+          import androidx.activity.result.ActivityResult;
           import com.getcapacitor.JSObject;
           import com.getcapacitor.Plugin;
           import com.getcapacitor.PluginCall;
           import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.ActivityCallback;
           import com.getcapacitor.annotation.CapacitorPlugin;
+          import com.wireguard.android.backend.GoBackend;
+          import com.wireguard.android.backend.Tunnel;
+          import com.wireguard.config.Config;
+          import com.wireguard.crypto.Key;
+          import com.wireguard.crypto.KeyPair;
+          import org.json.JSONArray;
+          import org.json.JSONObject;
+          import java.io.ByteArrayInputStream;
+          import java.nio.charset.StandardCharsets;
+          import java.security.KeyStore;
+          import java.util.ArrayList;
           import java.util.List;
+          import java.util.concurrent.ExecutorService;
+          import java.util.concurrent.Executors;
+          import javax.crypto.Cipher;
+          import javax.crypto.KeyGenerator;
+          import javax.crypto.SecretKey;
+          import javax.crypto.spec.GCMParameterSpec;
 
           @CapacitorPlugin(name = "BoostCore")
           public class BoostCorePlugin extends Plugin {
-              @PluginMethod
-              public void startBoost(PluginCall call) {
-                  Intent intent = VpnService.prepare(getContext());
-                  if (intent != null) getActivity().startActivityForResult(intent, 0);
-                  JSObject ret = new JSObject();
-                  ret.put("status", "success");
-                  call.resolve(ret);
+              private static final String PREFS = "nova_wireguard";
+              private static final String CIPHER_TEXT = "cipher_text";
+              private static final String IV = "iv";
+              private static final String KS_ALIAS = "NOVA_WG_AES";
+              private final ExecutorService executor = Executors.newSingleThreadExecutor();
+              private GoBackend backend;
+              private NovaTunnel tunnel;
+              private String pendingConfig;
+
+              @Override public void load() {
+                  backend = new GoBackend(getContext());
+                  tunnel = new NovaTunnel("nova");
               }
 
+              @PluginMethod
+              public void getWireGuardPublicKey(PluginCall call) {
+                  try {
+                      KeyPair pair = getOrCreateKeyPair();
+                      JSObject out = new JSObject();
+                      out.put("publicKey", pair.getPublicKey().toBase64());
+                      out.put("stored", true);
+                      call.resolve(out);
+                  } catch (Exception e) { call.reject("WireGuard key generation failed", e.getMessage()); }
+              }
 
               @PluginMethod
               public void startVpn(PluginCall call) {
-                  String dns = call.getString("dns", "78.157.42.100");
-                  Intent prep = VpnService.prepare(getContext());
-                  if (prep != null) {
-                      MainActivity.pendingDns = dns;
-                      getActivity().startActivityForResult(prep, 100);
-                  } else {
-                      Intent i = new Intent(getContext(), NovaVpnService.class);
-                      i.putExtra(NovaVpnService.EXTRA_DNS, dns);
-                      getContext().startService(i);
-                  }
-                  JSObject r2 = new JSObject();
-                  r2.put("status", "ok");
-                  call.resolve(r2);
+                  JSONObject cfg = call.getObject("config");
+                  if (cfg == null) { call.reject("WireGuard config is missing"); return; }
+                  try {
+                      pendingConfig = cfg.toString();
+                      Intent prepare = VpnService.prepare(getActivity());
+                      if (prepare != null) { startActivityForResult(call, prepare, "vpnPermissionResult"); return; }
+                      connectAsync(call, pendingConfig);
+                  } catch (Exception e) { call.reject("VPN preparation failed", e.getMessage()); }
+              }
+
+              @ActivityCallback
+              private void vpnPermissionResult(PluginCall call, ActivityResult result) {
+                  if (call == null) return;
+                  if (result.getResultCode() != Activity.RESULT_OK) { call.reject("VPN permission was not granted"); return; }
+                  connectAsync(call, pendingConfig);
+              }
+
+              private void connectAsync(final PluginCall call, final String json) {
+                  executor.execute(() -> {
+                      try {
+                          Config config = Config.parse(new ByteArrayInputStream(buildWgQuickConfig(new JSONObject(json)).getBytes(StandardCharsets.UTF_8)));
+                          backend.setState(tunnel, Tunnel.State.UP, config);
+                          JSObject ret = new JSObject();
+                          ret.put("status", "connected");
+                          ret.put("backend", backend.getVersion());
+                          call.resolve(ret);
+                      } catch (Exception e) { call.reject("WireGuard connection failed", e.getMessage()); }
+                  });
               }
 
               @PluginMethod
               public void stopVpn(PluginCall call) {
-                  getContext().stopService(new Intent(getContext(), NovaVpnService.class));
-                  JSObject r2 = new JSObject();
-                  r2.put("status", "ok");
-                  call.resolve(r2);
+                  executor.execute(() -> {
+                      try {
+                          backend.setState(tunnel, Tunnel.State.DOWN, null);
+                          JSObject ret = new JSObject(); ret.put("status", "disconnected"); call.resolve(ret);
+                      } catch (Exception e) { call.reject("WireGuard disconnect failed", e.getMessage()); }
+                  });
+              }
+
+              @PluginMethod
+              public void vpnStatus(PluginCall call) {
+                  try {
+                      JSObject ret = new JSObject();
+                      ret.put("connected", backend.getState(tunnel) == Tunnel.State.UP);
+                      ret.put("backend", backend.getVersion());
+                      call.resolve(ret);
+                  } catch (Exception e) { call.reject("VPN status failed", e.getMessage()); }
               }
 
               @PluginMethod
               public void launchGame(PluginCall call) {
-                  String pkgList = call.getString("pkg", "");
-                  String keywords = call.getString("keywords", "");
+                  String pkgList = call.getString("pkg", ""), keywords = call.getString("keywords", "");
                   JSObject ret = new JSObject();
                   for (String p : pkgList.split(",")) {
-                      p = p.trim();
-                      if (p.isEmpty()) continue;
+                      p = p.trim(); if (p.isEmpty()) continue;
                       Intent launch = getContext().getPackageManager().getLaunchIntentForPackage(p);
-                      if (launch != null) {
-                          launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                          getActivity().startActivity(launch);
-                          ret.put("launched", true);
-                          ret.put("pkg", p);
-                          call.resolve(ret);
-                          return;
-                      }
+                      if (launch != null) { launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); getActivity().startActivity(launch); ret.put("launched", true); ret.put("pkg", p); call.resolve(ret); return; }
                   }
                   try {
-                      Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
-                      mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-                      List<ResolveInfo> ris = getContext().getPackageManager().queryIntentActivities(mainIntent, 0);
-                      String[] kws = keywords.toLowerCase().split(",");
-                      for (String kw : kws) {
-                          kw = kw.trim();
-                          if (kw.length() < 3) continue;
-                          for (ResolveInfo ri : ris) {
+                      Intent mainIntent = new Intent(Intent.ACTION_MAIN, null); mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                      List<android.content.pm.ResolveInfo> ris = getContext().getPackageManager().queryIntentActivities(mainIntent, 0);
+                      for (String kw : keywords.toLowerCase().split(",")) {
+                          kw = kw.trim(); if (kw.length() < 3) continue;
+                          for (android.content.pm.ResolveInfo ri : ris) {
                               String pkg = ri.activityInfo.packageName.toLowerCase();
                               String name = ri.loadLabel(getContext().getPackageManager()).toString().toLowerCase();
                               if (pkg.contains(kw) || name.contains(kw)) {
-                                  Intent i = new Intent(Intent.ACTION_MAIN);
-                                  i.addCategory(Intent.CATEGORY_LAUNCHER);
-                                  i.setComponent(new ComponentName(ri.activityInfo.packageName, ri.activityInfo.name));
-                                  i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                  getActivity().startActivity(i);
-                                  ret.put("launched", true);
-                                  ret.put("pkg", ri.activityInfo.packageName);
-                                  call.resolve(ret);
-                                  return;
+                                  Intent i = new Intent(Intent.ACTION_MAIN); i.addCategory(Intent.CATEGORY_LAUNCHER);
+                                  i.setComponent(new android.content.ComponentName(ri.activityInfo.packageName, ri.activityInfo.name));
+                                  i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); getActivity().startActivity(i);
+                                  ret.put("launched", true); ret.put("pkg", ri.activityInfo.packageName); call.resolve(ret); return;
                               }
                           }
                       }
-                  } catch (Exception e) {
-                  }
-                  ret.put("launched", false);
-                  call.resolve(ret);
+                  } catch (Exception ignored) { }
+                  ret.put("launched", false); call.resolve(ret);
               }
 
               @PluginMethod
               public void listInstalledGames(PluginCall call) {
-                  JSObject ret = new JSObject();
-                  JSArray list = new JSArray();
+                  JSObject ret = new JSObject(); JSONArray list = new JSONArray();
                   try {
-                      Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
-                      mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-                      List<ResolveInfo> ris = getContext().getPackageManager().queryIntentActivities(mainIntent, 0);
-                      for (ResolveInfo ri : ris) {
-                          JSObject obj = new JSObject();
-                          obj.put("pkg", ri.activityInfo.packageName);
-                          obj.put("name", ri.loadLabel(getContext().getPackageManager()).toString());
-                          list.put(obj);
+                      Intent mainIntent = new Intent(Intent.ACTION_MAIN, null); mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                      List<android.content.pm.ResolveInfo> ris = getContext().getPackageManager().queryIntentActivities(mainIntent, 0);
+                      for (android.content.pm.ResolveInfo ri : ris) {
+                          JSObject obj = new JSObject(); obj.put("pkg", ri.activityInfo.packageName);
+                          obj.put("name", ri.loadLabel(getContext().getPackageManager()).toString()); list.put(obj);
                       }
-                  } catch (Exception e) {
-                      ret.put("error", e.getMessage());
-                  }
-                  ret.put("games", list);
-                  call.resolve(ret);
+                  } catch (Exception e) { ret.put("error", e.getMessage()); }
+                  ret.put("games", list); call.resolve(ret);
+              }
+
+              private KeyPair getOrCreateKeyPair() throws Exception {
+                  Context c = getContext();
+                  android.content.SharedPreferences p = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+                  String encrypted = p.getString(CIPHER_TEXT, null), ivText = p.getString(IV, null);
+                  if (encrypted != null && ivText != null) return new KeyPair(Key.fromBase64(decrypt(encrypted, ivText)));
+                  KeyPair pair = new KeyPair();
+                  String[] parts = encrypt(pair.getPrivateKey().toBase64());
+                  p.edit().putString(CIPHER_TEXT, parts[0]).putString(IV, parts[1]).apply();
+                  return pair;
+              }
+
+              private SecretKey getOrCreateAesKey() throws Exception {
+                  KeyStore ks = KeyStore.getInstance("AndroidKeyStore"); ks.load(null);
+                  if (ks.containsAlias(KS_ALIAS)) return ((KeyStore.SecretKeyEntry) ks.getEntry(KS_ALIAS, null)).getSecretKey();
+                  KeyGenerator gen = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
+                  gen.init(new KeyGenParameterSpec.Builder(KS_ALIAS, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                          .setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).build());
+                  return gen.generateKey();
+              }
+
+              private String[] encrypt(String plain) throws Exception {
+                  byte[] iv = new byte[12]; new java.security.SecureRandom().nextBytes(iv);
+                  Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); cipher.init(Cipher.ENCRYPT_MODE, getOrCreateAesKey(), new GCMParameterSpec(128, iv));
+                  return new String[]{Base64.encodeToString(cipher.doFinal(plain.getBytes(StandardCharsets.UTF_8)), Base64.NO_WRAP), Base64.encodeToString(iv, Base64.NO_WRAP)};
+              }
+
+              private String decrypt(String encrypted, String ivText) throws Exception {
+                  Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+                  cipher.init(Cipher.DECRYPT_MODE, getOrCreateAesKey(), new GCMParameterSpec(128, Base64.decode(ivText, Base64.NO_WRAP)));
+                  return new String(cipher.doFinal(Base64.decode(encrypted, Base64.NO_WRAP)), StandardCharsets.UTF_8);
+              }
+
+              private String buildWgQuickConfig(JSONObject c) throws Exception {
+                  StringBuilder b = new StringBuilder();
+                  b.append("[Interface]\nPrivateKey = ").append(getOrCreateKeyPair().getPrivateKey().toBase64()).append("\n");
+                  b.append("Address = ").append(c.getString("address")).append("\n");
+                  JSONArray dns = c.optJSONArray("dns"); if (dns != null && dns.length() > 0) b.append("DNS = ").append(join(dns)).append("\n");
+                  if (c.has("mtu")) b.append("MTU = ").append(c.getInt("mtu")).append("\n");
+                  b.append("\n[Peer]\nPublicKey = ").append(c.getString("server_public_key")).append("\n");
+                  JSONArray allowed = c.optJSONArray("allowed_ips"); b.append("AllowedIPs = ").append(allowed == null ? "0.0.0.0/0" : join(allowed)).append("\n");
+                  b.append("Endpoint = ").append(c.getString("endpoint")).append("\n");
+                  b.append("PersistentKeepalive = ").append(c.optInt("persistent_keepalive", 25)).append("\n");
+                  return b.toString();
+              }
+
+              private String join(JSONArray arr) throws Exception {
+                  ArrayList<String> vals = new ArrayList<>(); for (int i = 0; i < arr.length(); i++) vals.add(arr.getString(i)); return String.join(", ", vals);
+              }
+
+              private static final class NovaTunnel implements Tunnel {
+                  private final String name; NovaTunnel(String name) { this.name = name; }
+                  @Override public String getName() { return name; }
+                  @Override public void onStateChange(State newState) { }
               }
           }
-          EOF
-          cat << 'EOF' > app/src/main/java/com/novagamebooster/app/NovaVpnService.java
+          JAVA
+          cat << 'JAVA' > app/src/main/java/com/novagamebooster/app/MainActivity.java
           package com.novagamebooster.app;
-          import android.content.Intent;
-          import android.net.VpnService;
-          import android.os.ParcelFileDescriptor;
-          import java.io.FileInputStream;
-          import java.io.FileOutputStream;
-          import java.net.DatagramPacket;
-          import java.net.DatagramSocket;
-          import java.net.InetSocketAddress;
-
-          public class NovaVpnService extends VpnService {
-              public static final String EXTRA_DNS = "dns";
-              public static String currentDns = "78.157.42.100";
-              private ParcelFileDescriptor pfd;
-              private Thread thread;
-              private volatile boolean running = false;
-
-              @Override
-              public int onStartCommand(Intent intent, int flags, int startId) {
-                  if (intent != null && intent.hasExtra(EXTRA_DNS)) currentDns = intent.getStringExtra(EXTRA_DNS);
-                  stopThread();
-                  running = true;
-                  thread = new Thread(new Runnable() { public void run() { runVpn(); } });
-                  thread.start();
-                  return START_STICKY;
-              }
-
-              private void runVpn() {
-                  FileInputStream in = null;
-                  FileOutputStream out = null;
-                  DatagramSocket sock = null;
-                  try {
-                      Builder b = new Builder();
-                      b.setSession("Nova Boost");
-                      b.addAddress("10.9.9.2", 32);
-                      b.addRoute("10.9.9.0", 24);
-                      b.addDnsServer("10.9.9.1");
-                      b.setMtu(1500);
-                      pfd = b.establish();
-                      if (pfd == null) return;
-                      in = new FileInputStream(pfd.getFileDescriptor());
-                      out = new FileOutputStream(pfd.getFileDescriptor());
-                      sock = new DatagramSocket();
-                      sock.setSoTimeout(3000);
-                      byte[] buf = new byte[32767];
-                      while (running) {
-                          int len = in.read(buf);
-                          if (len < 28) continue;
-                          if (((buf[0] & 0xFF) >> 4) != 4) continue;
-                          int ihl = (buf[0] & 0x0F) * 4;
-                          if ((buf[9] & 0xFF) != 17) continue;
-                          int srcPort = ((buf[ihl] & 0xFF) << 8) | (buf[ihl + 1] & 0xFF);
-                          int dstPort = ((buf[ihl + 2] & 0xFF) << 8) | (buf[ihl + 3] & 0xFF);
-                          if (dstPort != 53) continue;
-                          int udpLen = ((buf[ihl + 4] & 0xFF) << 8) | (buf[ihl + 5] & 0xFF);
-                          int dnsLen = udpLen - 8;
-                          if (dnsLen <= 0 || ihl + 8 + dnsLen > len) continue;
-                          try {
-                              byte[] q = new byte[dnsLen];
-                              System.arraycopy(buf, ihl + 8, q, 0, dnsLen);
-                              sock.send(new DatagramPacket(q, dnsLen, new InetSocketAddress(currentDns, 53)));
-                              byte[] resp = new byte[4096];
-                              DatagramPacket rp = new DatagramPacket(resp, resp.length);
-                              sock.receive(rp);
-                              int rl = rp.getLength();
-                              byte[] pkt = new byte[ihl + 8 + rl];
-                              System.arraycopy(buf, 0, pkt, 0, ihl);
-                              byte[] tmp = new byte[4];
-                              System.arraycopy(pkt, 12, tmp, 0, 4);
-                              System.arraycopy(pkt, 16, pkt, 12, 4);
-                              System.arraycopy(tmp, 0, pkt, 16, 4);
-                              int totalLen = ihl + 8 + rl;
-                              pkt[2] = (byte) ((totalLen >> 8) & 0xFF);
-                              pkt[3] = (byte) (totalLen & 0xFF);
-                              pkt[ihl] = (byte) ((53 >> 8) & 0xFF);
-                              pkt[ihl + 1] = (byte) (53 & 0xFF);
-                              pkt[ihl + 2] = (byte) ((srcPort >> 8) & 0xFF);
-                              pkt[ihl + 3] = (byte) (srcPort & 0xFF);
-                              int ul = 8 + rl;
-                              pkt[ihl + 4] = (byte) ((ul >> 8) & 0xFF);
-                              pkt[ihl + 5] = (byte) (ul & 0xFF);
-                              pkt[ihl + 6] = 0;
-                              pkt[ihl + 7] = 0;
-                              System.arraycopy(resp, 0, pkt, ihl + 8, rl);
-                              pkt[10] = 0;
-                              pkt[11] = 0;
-                              int sum = 0;
-                              for (int i = 0; i < ihl; i += 2) sum += ((pkt[i] & 0xFF) << 8) | (pkt[i + 1] & 0xFF);
-                              while ((sum >> 16) != 0) sum = (sum & 0xFFFF) + (sum >> 16);
-                              sum = ~sum & 0xFFFF;
-                              pkt[10] = (byte) ((sum >> 8) & 0xFF);
-                              pkt[11] = (byte) (sum & 0xFF);
-                              out.write(pkt);
-                          } catch (Exception e) { }
-                      }
-                  } catch (Exception e) { }
-                  try { if (sock != null) sock.close(); } catch (Exception e) { }
-              }
-
-              private void stopThread() {
-                  running = false;
-                  if (thread != null) { thread.interrupt(); thread = null; }
-                  try { if (pfd != null) { pfd.close(); pfd = null; } } catch (Exception e) { }
-              }
-
-              @Override
-              public void onDestroy() {
-                  stopThread();
-                  super.onDestroy();
-              }
-          }
-          EOF
-          cat << 'EOF' > app/src/main/java/com/novagamebooster/app/MainActivity.java
-          package com.novagamebooster.app;
-          import android.content.Intent;
-          import android.os.Bundle;
           import com.getcapacitor.BridgeActivity;
           public class MainActivity extends BridgeActivity {
-              public static String pendingDns = null;
-              @Override public void onCreate(Bundle s) { registerPlugin(BoostCorePlugin.class); super.onCreate(s); }
-              @Override protected void onActivityResult(int req, int res, Intent data) {
-                  super.onActivityResult(req, res, data);
-                  if (req == 100 && res == RESULT_OK && pendingDns != null) {
-                      Intent i = new Intent(this, NovaVpnService.class);
-                      i.putExtra(NovaVpnService.EXTRA_DNS, pendingDns);
-                      startService(i);
-                      pendingDns = null;
-                  }
+              @Override public void onCreate(android.os.Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  registerPlugin(BoostCorePlugin.class);
               }
           }
-          EOF
+          JAVA
+          python3 - << 'PY'
+          from pathlib import Path
+          p = Path('app/src/main/AndroidManifest.xml')
+          s = p.read_text()
+          # The WireGuard tunnel AAR ships its own GoBackend$VpnService manifest entry.
+          # Do not duplicate it here; Android's manifest merger will include the library service.
+          p.write_text(s)
+          PY
 
       - name: Allow package visibility (Android 11+)
         run: |
@@ -377,21 +387,23 @@ jobs:
           python3 - << 'PY'
           p = 'app/src/main/AndroidManifest.xml'
           s = open(p).read()
-          add = """    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
-              <queries>
+          add = """              <queries>
                   <intent>
                       <action android:name="android.intent.action.MAIN" />
                       <category android:name="android.intent.category.LAUNCHER" />
                   </intent>
               </queries>
           """
-          if 'QUERY_ALL_PACKAGES' not in s:
+          if '<queries>' not in s:
               s = s.replace('</manifest>', add + '</manifest>')
-              open(p, 'w').write(s)
+          if 'android:allowBackup="false"' not in s:
+              s = s.replace('<application', '<application android:allowBackup="false"', 1)
+          open(p, 'w').write(s)
           print('=== manifest tail ===')
           print(open(p).read()[-500:])
           PY
-          grep -q QUERY_ALL_PACKAGES app/src/main/AndroidManifest.xml && echo '✅ VISIBILITY OK' || { echo '❌ VISIBILITY MISSING'; exit 1; }
+          grep -q '<queries>' app/src/main/AndroidManifest.xml && echo '✅ VISIBILITY OK' || { echo '❌ VISIBILITY MISSING'; exit 1; }
+          if grep -q 'QUERY_ALL_PACKAGES' app/src/main/AndroidManifest.xml; then echo '❌ Broad package visibility is not allowed'; exit 1; fi
 
       - name: Build APK
         run: |
