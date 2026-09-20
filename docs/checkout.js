@@ -28,6 +28,8 @@
     document.getElementById("pmMethods").style.display="block";
     document.getElementById("pmCrypto").style.display="none";
     document.getElementById("pmZarin").style.display="none";
+    document.getElementById("pmWait").style.display="none";
+    document.getElementById("pmDone").style.display="none";
   }
   window.chooseMethod=function(m){
     document.getElementById("pmMethods").style.display="none";
@@ -101,8 +103,37 @@
     var em=ei?ei.value.trim():"";
     try{if(em)localStorage.setItem("nova_email",em);}catch(e){}
     if(state.orderId&&em)fetch(SB.url+"/rest/v1/orders?id=eq."+state.orderId,{method:"PATCH",headers:h(),body:JSON.stringify({email:em})}).catch(function(){});
-    window.open("https://t.me/NovaBoosterSupport","_blank");
+    showWait();
   };
+  function showWait(){
+    document.getElementById("pmMethods").style.display="none";
+    document.getElementById("pmCrypto").style.display="none";
+    document.getElementById("pmZarin").style.display="none";
+    document.getElementById("pmDone").style.display="none";
+    document.getElementById("pmWait").style.display="block";
+    document.getElementById("pmWaitCode").textContent=state.code;
+    fillPay();
+    startPoll();
+  }
+  var pollTimer=null,pollTries=0;
+  function startPoll(){if(pollTimer)clearInterval(pollTimer);pollTries=0;pollTimer=setInterval(checkOrder,15000);}
+  window.pollNow=function(){checkOrder();};
+  function checkOrder(){
+    pollTries++;
+    if(pollTries>80){if(pollTimer){clearInterval(pollTimer);pollTimer=null;}return;}return;}
+    fetch(SB.url+"/rest/v1/orders?code=eq."+encodeURIComponent(state.code)+"&select=id,status",{headers:h()}).then(function(r){return r.json();}).then(function(o){
+      if(o&&o[0]&&o[0].status==="paid"){
+        if(pollTimer){clearInterval(pollTimer);pollTimer=null;}
+        fetch(SB.url+"/rest/v1/licenses?order_id=eq."+o[0].id+"&select=key",{headers:h()}).then(function(r){return r.json();}).then(function(l){
+          document.getElementById("pmWait").style.display="none";
+          document.getElementById("pmDone").style.display="block";
+          document.getElementById("pmLicKey").textContent=l&&l[0]?l[0].key:"—";
+          fillPay();
+        });
+      }
+    }).catch(function(){});
+  }
+  window.copyLic=function(){var t=document.getElementById("pmLicKey").textContent;if(navigator.clipboard)navigator.clipboard.writeText(t);};
 
   window.closeCheckout=function(){document.getElementById("payModal").style.display="none";};
 
@@ -137,7 +168,15 @@ tr:{pay_method:"Ödeme yöntemi seç",pm_zarin_title:"Rial ödeme (Zarinpal)",pm
 ar:{pay_method:"اختر طريقة الدفع",pm_zarin_title:"الدفع بالريال (زرين بال)",pm_zarin_soon:"يُفعّل قريباً (بانتظار موافقة زرين بال). حالياً: كريبتو أو الدعم.",pm_back:"رجوع",pay_email:"البريد الإلكتروني (تسليم الترخيص)",pay_amount:"المبلغ الدقيق (لهذا الطلب فقط)",pay_copy:"نسخ",pay_copied:"تم النسخ!",pay_paid:"دفعت — إرسال الإيصال",pay_order:"كود الطلب:",pay_note:"المبلغ فريد لهذا الطلب. بعد الإيداع أرسل الكود وTXID للدعم.",pay_sub:"دفع كريبتو — تفعيل تلقائي",track_title:"تتبع الطلب",track_btn:"فحص الحالة",track_pending:"⏳ بانتظار الدفع — يُصدر الترخيص تلقائياً.",track_paid:"✅ تم تأكيد الدفع — ترخيصك:",track_notfound:"لم يُعثر على طلب بهذا الكود."},
 fil:{pay_method:"Pumili ng paraan ng bayad",pm_zarin_title:"Bayad sa Rial (Zarinpal)",pm_zarin_soon:"Mag-a-activate malapit na (hintay ang Zarinpal approval). Samantala: crypto o support.",pm_back:"Bumalik",pay_email:"Email (delivery ng license)",pay_amount:"Eksaktong halaga (order na ito lang)",pay_copy:"Kopyahin",pay_copied:"Nakopya!",pay_paid:"Bayad na — ipadala ang resibo",pay_order:"Order code:",pay_note:"Natatangi ang halaga para sa order na ito. Pagkatapos ng bayad, ipadala ang code at TXID sa support.",pay_sub:"Crypto bayad — awtomatikong activation",track_title:"Subaybayan ang order",track_btn:"Suriin ang status",track_pending:"⏳ Naghihintay ng bayad — awtomatikong lalabas ang license.",track_paid:"✅ Nakumpirma ang bayad — license mo:",track_notfound:"Walang order na nahanap sa code na ito."}};
 PL.tl=PL.fil;
-function fillPay(){var lang=window.NOVA_lang||document.documentElement.lang||"fa";var d=PL[lang]||PL.en;document.querySelectorAll("#payModal [data-i18n],#trackModal [data-i18n]").forEach(function(el){var k=el.getAttribute("data-i18n");if(d[k])el.textContent=d[k];});}
+
+var OVR={
+fa:{pay_note:"بعد از واریز، اشتراکت به‌صورت خودکار طی حدود ۵ دقیقه فعال می‌شه — نیازی به ارسال رسید نیست.",pay_wait:"در حال تأیید پرداخت… اشتراکت به‌صورت خودکار فعال می‌شه، لطفاً صبر کن.",pay_track_btn:"مشاهده لایسنس",pay_success:"پرداخت تأیید شد! لایسنس تو:",pay_support:"کمک لازم داری؟ پشتیبانی"},
+en:{pay_note:"After payment your subscription activates automatically within ~5 minutes — no receipt needed.",pay_wait:"Waiting for payment confirmation… your subscription activates automatically.",pay_track_btn:"View license",pay_success:"Payment confirmed! Your license:",pay_support:"Need help? Support"},
+tr:{pay_note:"Ödemeden sonra aboneliğin ~5 dakika içinde otomatik aktif olur — makbuz gerekmez.",pay_wait:"Ödeme onayı bekleniyor… aboneliğin otomatik aktif olacak.",pay_track_btn:"Lisansı gör",pay_success:"Ödeme onaylandı! Lisansın:",pay_support:"Yardım mı? Destek"},
+ar:{pay_note:"بعد الدفع يُفعّل اشتراكك تلقائياً خلال ~5 دقائق — لا حاجة لإرسال إيصال.",pay_wait:"بانتظار تأكيد الدفع… يُفعّل اشتراكك تلقائياً.",pay_track_btn:"عرض الترخيص",pay_success:"تم تأكيد الدفع! ترخيصك:",pay_support:"تحتاج مساعدة؟ الدعم"},
+fil:{pay_note:"Pagkatapos ng bayad, awtomatikong mag-a-activate ang subscription mo sa loob ng ~5 minuto — hindi kailangan ng resibo.",pay_wait:"Naghihintay ng kumpirmasyon… awtomatikong mag-a-activate ang subscription mo.",pay_track_btn:"Tingnan ang license",pay_success:"Nakumpirma ang bayad! License mo:",pay_support:"Kailangan ng tulong? Support"}};
+OVR.tl=OVR.fil;
+function fillPay(){var lang=window.NOVA_lang||document.documentElement.lang||"fa";var d=Object.assign({},PL[lang]||PL.en,OVR[lang]||{});document.querySelectorAll("#payModal [data-i18n],#trackModal [data-i18n]").forEach(function(el){var k=el.getAttribute("data-i18n");if(d[k])el.textContent=d[k];});}
 document.addEventListener("change",fillPay);
 document.addEventListener("DOMContentLoaded",fillPay);
 window.addEventListener("load",fillPay);
