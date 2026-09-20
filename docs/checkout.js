@@ -19,7 +19,7 @@
     state.usd=BASE[i]*(PPP[lang]||1)+seq/1e6;
     var ei=document.getElementById("pmEmail");
     if(ei){try{ei.value=localStorage.getItem("nova_email")||"";}catch(e){}}
-    showMethods();
+    showMethods();fillPay();
     document.getElementById("payModal").style.display="flex";
     createOrder(lang);
   };
@@ -33,6 +33,7 @@
     document.getElementById("pmMethods").style.display="none";
     if(m==="zarin"){document.getElementById("pmZarin").style.display="block";}
     else{document.getElementById("pmCrypto").style.display="block";setCoin(m);}
+    fillPay();
   };
   window.backToMethods=showMethods;
 
@@ -54,19 +55,17 @@
       sync();
     } else {
       amt.textContent="...";
-      fetch("https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd").then(function(r){return r.json();}).then(function(d){
-        var p=d&&d["the-open-network"]?d["the-open-network"].usd:0;
-        if(p>0){
-          var t=state.usd/p;state.tonAmt=t;
-          amt.textContent=t.toFixed(6)+" TON";
-          adr.textContent=PAY.ton;
-          qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent("ton://transfer/"+PAY.ton+"?amount="+Math.round(t*1e9));
-          sync();
-        } else { amt.textContent="TON rate unavailable"; qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent(PAY.ton); }
+      tonRate().then(function(tpu){
+        var t=state.usd*tpu;state.tonAmt=t;
+        amt.textContent=t.toFixed(6)+" TON";
+        adr.textContent=PAY.ton;
+        qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent("ton://transfer/"+PAY.ton+"?amount="+Math.round(t*1e9));
+        sync();
       }).catch(function(){amt.textContent="TON rate unavailable";qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+encodeURIComponent(PAY.ton);});
     }
   }
 
+  function tonRate(){return fetch("https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT").then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(d){var p=parseFloat(d.price);if(!p)throw 0;return 1/p;}).catch(function(){return fetch("https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd").then(function(r){return r.json();}).then(function(d){var p=d&&d["the-open-network"]?d["the-open-network"].usd:0;if(!p)throw 0;return 1/p;});});}
   function createOrder(lang){
     var ei=document.getElementById("pmEmail");
     fetch(SB.url+"/rest/v1/orders",{method:"POST",headers:h(),body:JSON.stringify({
@@ -140,6 +139,9 @@ fil:{pay_method:"Pumili ng paraan ng bayad",pm_zarin_title:"Bayad sa Rial (Zarin
 PL.tl=PL.fil;
 function fillPay(){var lang=window.NOVA_lang||document.documentElement.lang||"fa";var d=PL[lang]||PL.en;document.querySelectorAll("#payModal [data-i18n],#trackModal [data-i18n]").forEach(function(el){var k=el.getAttribute("data-i18n");if(d[k])el.textContent=d[k];});}
 document.addEventListener("change",fillPay);
+document.addEventListener("DOMContentLoaded",fillPay);
+window.addEventListener("load",fillPay);
+setTimeout(fillPay,300);
 fillPay();
 console.log("✅ NOVA checkout ready");
 })();
