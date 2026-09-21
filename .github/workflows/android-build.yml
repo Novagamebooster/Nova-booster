@@ -33,7 +33,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
 
       - name: Install Capacitor
         run: |
@@ -144,7 +144,7 @@ jobs:
           if 'com.wireguard.android:tunnel' not in s:
               s = s.replace('dependencies {', "dependencies {\n    implementation 'com.wireguard.android:tunnel:1.0.20260102'\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3'", 1)
           if 'coreLibraryDesugaringEnabled true' not in s:
-              s = s.replace('android {', 'android {\n    compileOptions {\n        sourceCompatibility JavaVersion.VERSION_17\n        targetCompatibility JavaVersion.VERSION_17\n        coreLibraryDesugaringEnabled true\n    }', 1)
+              s = s.replace('android {', 'android {\n    compileOptions {\n        sourceCompatibility JavaVersion.VERSION_21\n        targetCompatibility JavaVersion.VERSION_21\n        coreLibraryDesugaringEnabled true\n    }', 1)
           p.write_text(s)
           PY
           mkdir -p app/src/main/java/com/novagamebooster/app
