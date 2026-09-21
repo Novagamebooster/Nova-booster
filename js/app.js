@@ -41,6 +41,8 @@ let state = {
     manualSelected: localStorage.getItem("nova_manual_selected") || null,
     boosting: false,
     boostTimer: null,
+    deviceStats: null,
+    boostSession: null,
     showAllGames: false
 };
 
@@ -254,6 +256,49 @@ function createRadarParticles() {
     }
 }
 
+async function scanBoostApps() {
+    if (
+        !window.Capacitor ||
+        !Capacitor.Plugins ||
+        !Capacitor.Plugins.BoostCore ||
+        !Capacitor.Plugins.BoostCore.scanBackgroundApps
+    ) {
+        return null;
+    }
+
+    try {
+        const result = await Capacitor.Plugins.BoostCore.scanBackgroundApps();
+        const apps = Array.isArray(result && result.apps) ? result.apps : [];
+        state.boostSession = state.boostSession || {};
+        state.boostSession.scannedApps = apps;
+        return apps;
+    } catch (e) {
+        console.warn("Boost app scan:", e);
+        return null;
+    }
+}
+
+async function readDeviceStats() {
+    if (
+        !window.Capacitor ||
+        !Capacitor.Plugins ||
+        !Capacitor.Plugins.BoostCore ||
+        !Capacitor.Plugins.BoostCore.getDeviceStats
+    ) {
+        return null;
+    }
+
+    try {
+        const stats = await Capacitor.Plugins.BoostCore.getDeviceStats();
+        state.deviceStats = stats || null;
+        return state.deviceStats;
+    } catch (e) {
+        console.warn("Device stats:", e);
+        state.deviceStats = null;
+        return null;
+    }
+}
+
 function renderHistory() {
     const el = document.getElementById("pingHistory");
     if (state.pingHistory.length === 0) {
@@ -425,6 +470,12 @@ function initApp() {
     document.getElementById("boostBtn").onclick = async function () {
         if (state.boosting) { stopBoost(); return; }
         if (!state.selectedGame) { toast('اول یک بازی انتخاب کن! 🎮'); return; }
+        await readDeviceStats();
+        state.boostSession = { startedAt: Date.now() };
+        const scannedApps = await scanBoostApps();
+        if (Array.isArray(scannedApps)) {
+            toast(`🔎 ${scannedApps.length} برنامه قابل بررسی شناسایی شد`);
+        }
         state.boosting = true;
         this.innerHTML = 'STOP BOOST<span class="btn-sub">توقف بوست</span>';
         document.getElementById("boostCard").classList.add("scanning");

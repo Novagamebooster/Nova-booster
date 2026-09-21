@@ -1,0 +1,27 @@
+# Android / Build outputs
+*.apk
+*.aab
+build/
+dist/
+
+# Archives
+*.zip
+
+# Backup files
+*.backup
+*.bak
+*.old
+*.before-cleanup
+
+# Temporary files
+*.tmp
+*.temp
+
+# Local / editor files
+.DS_Store
+.idea/
+.vscode/
+
+# Workflow backup files
+.github/workflows/*.backup-*
+.github/workflows/*.before-*

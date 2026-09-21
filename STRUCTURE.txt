@@ -1,0 +1,35 @@
+Project Structure
+=================
+
+Nova-booster/
+├── README.md                    # This file
+├── index.html                   # Main app
+├── auth.html                    # Login/Register
+├── admin.html                   # Admin panel
+├── manifest.json                # PWA manifest
+├── sw.js                        # Service Worker
+│
+├── css/
+│   └── style.css                # Main styles
+│
+├── js/
+│   ├── app.js                   # App logic
+│   ├── auth.js                  # Auth system
+│   ├── games.js                 # Games list
+│   ├── pay.js                   # Payment system
+│   └── security.js              # Security
+│
+├── icons/
+│   ├── games/                   # Game icons
+│   └── app/                     # App icons
+│
+├── docs/                        # GitHub Pages
+│   ├── index.html               # Landing page
+│   ├── checkout.js              # Checkout
+│   └── i18n.js                  # Translations
+│
+└── .github/
+    └── workflows/
+        ├── android-build.yml    # APK builder
+        ├── watcher.mjs          # Payment watcher
+        └── notify-test.yml      # Telegram test

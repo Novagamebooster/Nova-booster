@@ -264,6 +264,67 @@ jobs:
               }
 
               @PluginMethod
+              public void getDeviceStats(PluginCall call) {
+                  try {
+                      android.app.ActivityManager activityManager = (android.app.ActivityManager) getContext().getSystemService(Context.ACTIVITY_SERVICE);
+                      android.app.ActivityManager.MemoryInfo memoryInfo = new android.app.ActivityManager.MemoryInfo();
+                      activityManager.getMemoryInfo(memoryInfo);
+                      long totalRam = memoryInfo.totalMem;
+                      long availableRam = memoryInfo.availMem;
+                      long usedRam = totalRam - availableRam;
+                      int ramPercent = totalRam > 0 ? (int) ((usedRam * 100L) / totalRam) : 0;
+                      Intent batteryIntent = getContext().registerReceiver(null, new android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+                      int batteryPercent = -1;
+                      boolean charging = false;
+                      if (batteryIntent != null) {
+                          int level = batteryIntent.getIntExtra("level", -1);
+                          int scale = batteryIntent.getIntExtra("scale", -1);
+                          if (level >= 0 && scale > 0) batteryPercent = (level * 100) / scale;
+                          int status = batteryIntent.getIntExtra("status", android.os.BatteryManager.BATTERY_STATUS_UNKNOWN);
+                          charging = status == android.os.BatteryManager.BATTERY_STATUS_CHARGING || status == android.os.BatteryManager.BATTERY_STATUS_FULL;
+                      }
+                      JSObject out = new JSObject();
+                      out.put("ramTotalBytes", totalRam);
+                      out.put("ramAvailableBytes", availableRam);
+                      out.put("ramUsedBytes", usedRam);
+                      out.put("ramUsedPercent", ramPercent);
+                      out.put("batteryPercent", batteryPercent);
+                      out.put("charging", charging);
+                      call.resolve(out);
+                  } catch (Exception e) {
+                      call.reject("Device stats failed", e.getMessage());
+                  }
+              }
+
+              @PluginMethod
+              public void scanBackgroundApps(PluginCall call) {
+                  try {
+                      Context context = getContext();
+                      android.content.pm.PackageManager pm = context.getPackageManager();
+                      Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+                      mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                      List<android.content.pm.ResolveInfo> apps = pm.queryIntentActivities(mainIntent, 0);
+                      JSONArray list = new JSONArray();
+                      String ownPackage = context.getPackageName();
+                      for (android.content.pm.ResolveInfo info : apps) {
+                          String pkg = info.activityInfo.packageName;
+                          if (ownPackage.equals(pkg)) continue;
+                          JSONObject app = new JSONObject();
+                          app.put("pkg", pkg);
+                          app.put("name", info.loadLabel(pm).toString());
+                          list.put(app);
+                      }
+                      JSObject out = new JSObject();
+                      out.put("apps", list);
+                      out.put("count", list.length());
+                      out.put("scanned", true);
+                      call.resolve(out);
+                  } catch (Exception e) {
+                      call.reject("Background scan failed", e.getMessage());
+                  }
+              }
+
+              @PluginMethod
               public void launchGame(PluginCall call) {
                   String pkgList = call.getString("pkg", ""), keywords = call.getString("keywords", "");
                   JSObject ret = new JSObject();
